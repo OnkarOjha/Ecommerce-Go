@@ -1,0 +1,8 @@
+basePath: /
+info:
+  contact: {}
+  description: This is a demo version of Gin app.
+  title: Gin Demo App
+  version: "1.0"
+paths: {}
+swagger: "2.0"
