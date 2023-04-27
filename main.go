@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"main/server"
 	"main/server/db"
+	"main/server/services/user"
 
 	"os"
 
@@ -18,12 +20,14 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	fmt.Println("auth token: ", os.Getenv("TWILIO_AUTH_TOKEN"))
+	user.TwilioInit(os.Getenv("TWILIO_AUTH_TOKEN"))
 
 	connection := db.InitDB()
 	db.Transfer(connection)
 
 	// defer func() {
-		
+
 	// 	if err := connection.DB().Close(); err != nil {
 	// 		log.Print(err)
 	// 	}

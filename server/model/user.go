@@ -1,12 +1,18 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type User struct {
-	gorm.Model
-	UserId string `json:"userId"`
-	UserName string `json:"userName"`
-	Gender string `json:"gender"`
-	Contact string `json:"contact"`
-	Is_Active bool `json:"isActive"`
+	UserId    string         `json:"userId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
+	UserName  string         `json:"userName"`
+	Gender    string         `json:"gender"`
+	Contact   string         `json:"contact"`
+	Is_Active bool           `json:"isActive"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 }

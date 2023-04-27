@@ -1,15 +1,21 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Order struct {
-	gorm.Model
-	OrderId string `json:"orderId"`
-	ProductId string `json:"productId"`
-	PaymentId string `json:"paymentId"`
-	UserId string `json:"userId"`
-	OrderStatus string `json:"orderStatus"`
-	OrderAddress string `json:"orderAddress"`
-	OrderDate string `json:"orderDate"`
-	OrderQuantity string `json:"orderQuantity"`
+	OrderId       string         `json:"orderId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
+	ProductId     string         `json:"productId"`
+	PaymentId     string         `json:"paymentId"`
+	UserId        string         `json:"userId"`
+	OrderStatus   string         `json:"orderStatus"`
+	OrderAddress  string         `json:"orderAddress"`
+	OrderDate     string         `json:"orderDate"`
+	OrderQuantity string         `json:"orderQuantity"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+	DeletedAt     gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 }
