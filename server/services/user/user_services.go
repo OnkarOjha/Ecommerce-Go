@@ -39,6 +39,7 @@ func RegisterUserService(context *gin.Context, registerRequest request.UserReque
 	err := db.CreateRecord(&user)
 	if err != nil {
 		response.ErrorResponse(context, 500, err.Error())
+		return
 	}
 	response.ShowResponse(
 		"Success",
@@ -164,17 +165,50 @@ func GetUserByIdService(context *gin.Context, userId string) {
 	response.ShowResponse("Success", 200, "User Fetched successfully", user, context)
 }
 
-func EditUserService(context *gin.Context , editUserRequest request.EditUser){
+func EditUserService(context *gin.Context, editUserRequest request.EditUser) {
 	if !db.RecordExist("users", "user_id", editUserRequest.UserId) {
 		response.ErrorResponse(context, 400, "User not found")
 		return
 	}
 	var user model.User
-	db.FindById(&user , editUserRequest.UserId , "user_id")
+	err := db.FindById(&user, editUserRequest.UserId,
+		"user_id")
+	if err != nil {
+		response.ErrorResponse(context, 400, "Error finding user")
+	}
 
 	user.UserName = editUserRequest.UserName
-	user.Gender =editUserRequest.Gender
-	db.UpdateRecord(&user , editUserRequest.UserId , "user_id")
+	user.Gender = editUserRequest.Gender
+	db.UpdateRecord(&user, editUserRequest.UserId, "user_id")
 
-	response.ShowResponse("Success" , 200 , "User Profile updated successfully" , user , context)
+	response.ShowResponse("Success", 200, "User Profile updated successfully", user, context)
+}
+
+func LogoutUserService(context *gin.Context, logoutUser request.LogoutUser) {
+	var user model.User
+	err := db.FindById(&user, logoutUser.UserId,
+		"user_id")
+	if err != nil {
+		response.ErrorResponse(context, 400, "Error finding user")
+		return
+	}
+
+	user.Is_Active = false
+	query := "UPDATE users set is_active=false where user_id=?"
+	db.QueryExecutor(query , user , user.UserId)
+
+	var userSession  model.Session
+	err = db.FindById(&userSession , logoutUser.UserId ,"user_id")
+	if err != nil {
+		response.ErrorResponse(context, 400, "Error finding user session")
+		return
+	}
+	err = db.DeleteRecord(&userSession , userSession.
+	UserId , "user_id")
+	if err!=nil{
+		response.ErrorResponse(context , 400, "Error deleting user session")
+		return
+	}
+
+	response.ShowResponse("Success" , 200 , "Logout Successfull" , user , context)
 }

@@ -1,3 +1,4 @@
+
 package handler
 
 import (
@@ -94,5 +95,22 @@ func EditUserProfile(context *gin.Context){
 	}
 
 	user.EditUserService(context , editUserRequest)
+
+}
+
+func UserLogoutHandler(context *gin.Context){
+	utils.SetHeader(context)
+
+	var logoutUser request.LogoutUser
+
+	utils.RequestDecoding(context , &logoutUser)
+
+	err := validation.CheckValidation(&logoutUser)
+	if err!=nil{
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	user.LogoutUserService(context , logoutUser)
 
 }

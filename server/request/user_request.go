@@ -23,3 +23,8 @@ type EditUser struct{
 	Gender string `json:"gender"  validate:"oneof=male female"`
 	UserName string `json:"username"`
 }
+
+
+type LogoutUser struct{
+	UserId string `json:"userId" validate:"required"`
+}
