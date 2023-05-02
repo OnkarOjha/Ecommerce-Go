@@ -20,10 +20,11 @@ func ConfigureRoutes(server *Server) {
 	server.engine.DELETE("/logout",  provider.UserAuthorization, handler.UserLogoutHandler)
 
 	// cart handlers
-	server.engine.POST("/addToCart" , handler.AddToCartHandler)
-	server.engine.PUT("/addProduct" , handler.AddProductHandler)
-	server.engine.DELETE("/removeFromCart" , handler.RemoveFromCartHandler)
-	server.engine.DELETE("/removeProduct" , handler.RemoveProductHandler)
+	server.engine.POST("/addToCart" ,provider.UserAuthorization, handler.AddToCartHandler)
+	server.engine.PUT("/addProduct" , provider.UserAuthorization,handler.AddProductHandler)
+	server.engine.DELETE("/removeFromCart" ,provider.UserAuthorization, handler.RemoveFromCartHandler)
+	server.engine.DELETE("/removeProduct" ,provider.UserAuthorization, handler.RemoveProductHandler)
+	server.engine.GET("/getCartDetails" ,provider.UserAuthorization, handler.GetCartDetailsHandler)
 
 
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

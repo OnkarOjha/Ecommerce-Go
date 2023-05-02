@@ -56,6 +56,14 @@ func DeleteRecord(data interface{}, id interface{}, columName string) error {
 
 }
 
+func Delete(data interface{}, id interface{}, columName string)error{
+	column := columName + "=?"
+	err := db.Where(column , id).Unscoped().Delete(&data).Error
+	if err!=nil{
+		return err
+	}
+	return nil
+}
 
 func RecordExist(tableName string, columnName string, value string) bool {
 	var exists bool
@@ -63,3 +71,4 @@ func RecordExist(tableName string, columnName string, value string) bool {
 	db.Raw(query).Scan(&exists)
 	return exists
 }
+

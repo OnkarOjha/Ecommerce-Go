@@ -8,29 +8,34 @@ import (
 	"main/server/request"
 	"main/server/response"
 	"main/server/utils"
-
+	// "main/server/response/cart_response"
 	"github.com/gin-gonic/gin"
 )
 
-func UserIdFromToken(context *gin.Context) string {
+func UserIdFromToken(context *gin.Context) (string , error) {
 	tokenString, err := utils.GetTokenFromAuthHeader(context)
 	if err != nil {
 		response.ErrorResponse(
 			context, 401, "Error decoding token or invalid token",
 		)
-		context.Abort()
+		return "" , err
 	}
 	claims, err := provider.DecodeToken(tokenString)
 	if err != nil {
 		response.ErrorResponse(
 			context, 401, "Error decoding token or invalid token",
 		)
-		context.Abort()
+		return "" , err
 	}
-	return claims.UserId
+	return claims.UserId , nil
 }
 
 func AddToCartService(context *gin.Context, addToCartRequest request.AddToCartRequest) {
+	userId ,err := UserIdFromToken(context)
+	if err!=nil{
+		response.ErrorResponse(context , 400 , "Error in Token header , no userId found")
+		return
+	}
 	if !db.RecordExist("products", "product_id", addToCartRequest.ProductId) {
 		response.ErrorResponse(context, 400, "Invalid Product ID")
 		return
@@ -47,14 +52,15 @@ func AddToCartService(context *gin.Context, addToCartRequest request.AddToCartRe
 	cartProduct.ProductCount = addToCartRequest.ProductCount
 
 	// fetch product price from products table
-	err := db.FindById(&product, addToCartRequest.ProductId, "product_id")
+	err = db.FindById(&product, addToCartRequest.ProductId, "product_id")
 	if err != nil {
+		
 		response.ErrorResponse(context, 400, "Product not found")
 		return
 	}
 	var cartPreviousProduct model.CartProducts
-	if !db.RecordExist("cart_products", "user_id", addToCartRequest.UserId) {
-		err = db.FindById(&cartPreviousProduct, addToCartRequest.UserId, "user_id")
+	if db.RecordExist("cart_products", "user_id", userId) {
+		err = db.FindById(&cartPreviousProduct, userId, "user_id")
 		if err != nil {
 			response.ErrorResponse(context, 400, "Product not found")
 			return
@@ -62,7 +68,7 @@ func AddToCartService(context *gin.Context, addToCartRequest request.AddToCartRe
 		cartProduct.CartId = cartPreviousProduct.CartId
 	}
 	cartProduct.ProductPrice = product.ProductPrice * addToCartRequest.ProductCount
-	cartProduct.UserId = addToCartRequest.UserId
+	cartProduct.UserId = userId
 	err = db.CreateRecord(&cartProduct)
 	if err != nil {
 		response.ErrorResponse(context, 500, err.Error())
@@ -71,11 +77,11 @@ func AddToCartService(context *gin.Context, addToCartRequest request.AddToCartRe
 
 	// cart table
 	cart.CartId = cartProduct.CartId
-	cart.UserId = addToCartRequest.UserId
+	cart.UserId = userId
 	cart.CartCount = cart.CartCount + 1
 	cart.TotalPrice = cart.TotalPrice + cartProduct.ProductPrice
 
-	if !db.RecordExist("carts", "user_id", addToCartRequest.UserId) {
+	if !db.RecordExist("carts", "user_id", userId) {
 		fmt.Println("New cart creation")
 		err = db.CreateRecord(&cart)
 		if err != nil {
@@ -84,16 +90,16 @@ func AddToCartService(context *gin.Context, addToCartRequest request.AddToCartRe
 		}
 	} else {
 		var cartUpdate model.Cart
-		err := db.FindById(&cartUpdate, addToCartRequest.UserId, "user_id")
+		err := db.FindById(&cartUpdate, userId, "user_id")
 		if err != nil {
 			response.ErrorResponse(context, 400, "Record not found")
 			return
 		}
 		cart.CartId = cartProduct.CartId
-		cart.UserId = addToCartRequest.UserId
+		cart.UserId = userId
 		cart.CartCount = cartUpdate.CartCount + 1
 		cart.TotalPrice = cartUpdate.TotalPrice + cartProduct.ProductPrice
-		db.UpdateRecord(&cart, addToCartRequest.UserId, "user_id")
+		db.UpdateRecord(&cart, userId, "user_id")
 	}
 	response.ShowResponse(
 		"Success",
@@ -112,6 +118,11 @@ func AddToCartService(context *gin.Context, addToCartRequest request.AddToCartRe
 }
 
 func AddProductService(context *gin.Context, addProductCountRequest request.AddToCartRequest) {
+	userId ,err := UserIdFromToken(context)
+	if err!=nil{
+		response.ErrorResponse(context , 400 , "Error in Token header , no userId found")
+		return
+	}
 	var cartProduct model.CartProducts
 	var product model.Products
 	var cart model.Cart
@@ -137,14 +148,14 @@ func AddProductService(context *gin.Context, addProductCountRequest request.AddT
 			return
 		}
 
-		err = db.FindById(&cart, addProductCountRequest.UserId, "user_id")
+		err = db.FindById(&cart, userId, "user_id")
 		if err != nil {
 			response.ErrorResponse(context, 500, err.Error())
 			return
 		}
 
-		cart.TotalPrice = cart.TotalPrice + cartProduct.ProductPrice
-
+		cart.TotalPrice += cartProduct.ProductPrice
+		cart.TotalPrice -= product.ProductPrice
 		err = db.UpdateRecord(&cart, cart.CartId, "cart_id").Error
 		if err != nil {
 			response.ErrorResponse(context, 500, err.Error())
@@ -169,6 +180,11 @@ func AddProductService(context *gin.Context, addProductCountRequest request.AddT
 }
 
 func RemoveFromCartService(context *gin.Context, removeFromCartRequest request.RemoveFromCart) {
+	userId ,err := UserIdFromToken(context)
+	if err!=nil{
+		response.ErrorResponse(context , 400 , "Error in Token header , no userId found")
+		return
+	}
 	if !db.RecordExist("cart_products", "cart_id", removeFromCartRequest.CartId) {
 		response.ErrorResponse(context, 400, "Cart Id not found")
 		return
@@ -179,13 +195,13 @@ func RemoveFromCartService(context *gin.Context, removeFromCartRequest request.R
 	}
 	var cartProduct model.CartProducts
 	var cart model.Cart
-	err := db.FindById(&cartProduct, removeFromCartRequest.CartId, "cart_id")
+	err = db.FindById(&cartProduct, removeFromCartRequest.ProductId, "product_id")
 	if err != nil {
-		response.ErrorResponse(context, 400, "Error retrieving cart details from cart_products")
+		response.ErrorResponse(context, 400, "Error retrieving product from cart_products")
 		return
 	}
 
-	err = db.FindById(&cart, removeFromCartRequest.CartId, "cart_id")
+	err = db.FindById(&cart, userId, "user_id")
 	if err != nil {
 		response.ErrorResponse(context, 400, "Error retrieving cart details from cart")
 		return
@@ -194,19 +210,20 @@ func RemoveFromCartService(context *gin.Context, removeFromCartRequest request.R
 	cart.TotalPrice = cart.TotalPrice - cartProduct.ProductPrice
 	cart.CartCount = cart.CartCount - 1
 
-	err = db.UpdateRecord(&cart, removeFromCartRequest.CartId, "cart_id").Error
-	if err != nil {
-		response.ErrorResponse(context, 500, "Error updating cart")
+	query := "update carts set total_price = 0 , cart_count = 0 where cart_id=?"
+	err = db.QueryExecutor(query , &cart , removeFromCartRequest.CartId)
+	if err!=nil{
+		response.ErrorResponse(context , 400 , "Error updating cart")
 		return
 	}
 
-	err = db.DeleteRecord(&cartProduct, removeFromCartRequest.CartId, "cart_id")
+	err = db.Delete(&cartProduct, removeFromCartRequest.ProductId, "product_id")
 	if err != nil {
 		response.ErrorResponse(context, 500, "Error Deleting product from cart")
 		return
 	}
 	response.ShowResponse("Success", 200, "Product deleted", cartProduct, context)
-	response.ShowResponse("Success", 200, "Cart Detials ", cart, context)
+	response.ShowResponse("Success", 200, "Cart Details", cart, context)
 }
 
 func RemoveProductService(context *gin.Context, removeProductFromCart request.RemoveProduct) {
@@ -246,8 +263,10 @@ func RemoveProductService(context *gin.Context, removeProductFromCart request.Re
 		cartProduct.ProductPrice = 0.0
 	}
 
-	query := "UPDATE cart_products SET product_price= 0 , product_count = 0  where cart_id=?"
-	db.QueryExecutor(query, &cartProduct, removeProductFromCart.CartId)
+	err = db.UpdateRecord(&cartProduct , removeProductFromCart.CartId,"cart_id").Error
+	if err!=nil{
+		response.ErrorResponse(context , 500 , "Error updating cart")
+	}
 
 	err = db.FindById(&cart, removeProductFromCart.CartId, "cart_id")
 	if err != nil {
@@ -257,13 +276,16 @@ func RemoveProductService(context *gin.Context, removeProductFromCart request.Re
 	cart.TotalPrice -= product.ProductPrice * removeProductFromCart.ProductCount
 	if cart.TotalPrice <= 0 {
 		cart.TotalPrice = 0.0
+		cart.CartCount = 0
+	}
+	cart.CartCount -= 1
+	err = db.UpdateRecord(&cart , cart.CartId,"cart_id").Error
+	if err!=nil{
+		response.ErrorResponse(context , 500 , "Error updating cart")
 	}
 
-	query = "UPDATE carts SET total_price = 0 where cart_id = ?"
-	db.QueryExecutor(query, &cart, removeProductFromCart.CartId)
-
 	if cartProduct.ProductCount == 0 {
-		err = db.DeleteRecord(&cartProduct, removeProductFromCart.CartId, "cart_id")
+		err = db.Delete(&cartProduct, removeProductFromCart.ProductId, "product_id")
 		if err != nil {
 			response.ErrorResponse(context, 500, err.Error())
 			return
@@ -272,4 +294,36 @@ func RemoveProductService(context *gin.Context, removeProductFromCart request.Re
 
 	response.ShowResponse("Success", 200, "Successfully decremented the product count", cartProduct, context)
 	response.ShowResponse("Success", 200, "Cart Details after decrement", cart, context)
+}
+
+
+func GetCartDetailsService(context *gin.Context){
+	userId ,err := UserIdFromToken(context)
+	if err!=nil{
+		response.ErrorResponse(context , 400 , "Error in Token header , no userId found")
+		return
+	}
+
+	var cartProductDetails model.CartProducts
+	err = db.FindById(&cartProductDetails , userId , "user_id")
+	if err!=nil{
+		response.ErrorResponse(context , 401 , "No cart products matching this user id")
+		return
+	}
+
+	var cartResponse response.CartProductResponse
+
+	cartResponse.CartId = cartProductDetails.CartId
+	cartResponse.ProductId = cartProductDetails.ProductId
+	cartResponse.ProductCount = cartProductDetails.ProductCount
+	cartResponse.ProductPrice = cartProductDetails.ProductPrice
+	cartResponse.ProductAddedAt = cartProductDetails.CreatedAt
+
+	response.ShowResponse(
+		"Success",
+		200,
+		"User cart details are shown below",
+		cartResponse,
+		context,
+	)
 }

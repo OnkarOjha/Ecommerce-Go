@@ -77,4 +77,9 @@ func RemoveProductHandler(context *gin.Context){
 
 }
 
+func GetCartDetailsHandler(context *gin.Context){
+	utils.SetHeader(context)
+	cart.GetCartDetailsService(context)
+}
+
 
