@@ -1,18 +1,28 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Cart struct {
-	gorm.Model
-	CartId string `json:"cartId"`
-	UserId string `json:"userId"`
-	ProductCount int `json:"productCount"`
-	TotalPrice float64 `json:"totalPrice"`
+	CartId     string         `json:"cartId"`
+	UserId     string         `json:"userId"`
+	CartCount  int            `json:"cartCount"`
+	TotalPrice float64        `json:"totalPrice" fmt:"%.2f"`
+	CreatedAt  time.Time      `json:"createdAt"`
+	UpdatedAt  time.Time      `json:"updatedAt"`
+	DeletedAt  gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 }
 
 type CartProducts struct {
-	gorm.Model
-	CartId string `json:"cartId"`
-	ProductId string `json:"productId"`
+	CartId       string         `json:"cartId" gorm:"default:uuid_generate_v4();"`
+	UserId       string         `json:"userId"`
+	ProductId    string         `json:"productId"`
+	ProductCount float64        `json:"productCount"`
+	ProductPrice float64        `json:"productPrice" fmt:"%.2f"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	DeletedAt    gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 }
-

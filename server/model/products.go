@@ -1,10 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type Products struct {
-	gorm.Model
-	ProductId          string  `json:"productId"`
+	ProductId          string  `json:"productId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
 	ProductName        string  `json:"productName"`
 	ProductDescription string  `json:"productDescription"`
 	ProductPrice       float64 `json:"productPrice"`
