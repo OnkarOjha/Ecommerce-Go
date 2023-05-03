@@ -15,7 +15,7 @@ type Order struct {
 	OrderStatus   string         `json:"orderStatus"`
 	OrderAddress  string         `json:"orderAddress"`
 	OrderDate     string         `json:"orderDate"`
-	OrderQuantity string         `json:"orderQuantity"`
+	OrderQuantity float64        `json:"orderQuantity"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	DeletedAt     gorm.DeletedAt `json:"deletedAt" gorm:"index"`

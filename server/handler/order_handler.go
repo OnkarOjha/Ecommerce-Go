@@ -22,6 +22,12 @@ func MakePaymentHandler(context *gin.Context) {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
-	
-	order.MakePaymentService(context , paymentRequest)
+
+	order.MakePaymentService(context, paymentRequest)
+}
+
+func GetOrderDetails(context *gin.Context) {
+	utils.SetHeader(context)
+
+	order.GetOrderDetails(context)
 }
