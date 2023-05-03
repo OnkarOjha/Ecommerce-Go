@@ -7,7 +7,7 @@ import (
 )
 
 type Order struct {
-	OrderId       string         `json:"orderId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
+	OrderId       string         `json:"orderId"`
 	CartId        string         `json:"cartId"`
 	ProductId     string         `json:"productId"`
 	PaymentId     string         `json:"paymentId"`
