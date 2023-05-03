@@ -26,6 +26,9 @@ func ConfigureRoutes(server *Server) {
 	server.engine.DELETE("/removeProduct" ,provider.UserAuthorization, handler.RemoveProductHandler)
 	server.engine.GET("/getCartDetails" ,provider.UserAuthorization, handler.GetCartDetailsHandler)
 
+	//payment handler
+	server.engine.POST("/payment" , handler.MakePaymentHandler)
+
 
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

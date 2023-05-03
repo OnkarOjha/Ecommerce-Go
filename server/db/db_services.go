@@ -56,10 +56,10 @@ func DeleteRecord(data interface{}, id interface{}, columName string) error {
 
 }
 
-func Delete(data interface{}, id interface{}, columName string)error{
+func Delete(data interface{}, id interface{}, columName string) error {
 	column := columName + "=?"
-	err := db.Where(column , id).Unscoped().Delete(&data).Error
-	if err!=nil{
+	err := db.Where(column, id).Unscoped().Delete(&data).Error
+	if err != nil {
 		return err
 	}
 	return nil
@@ -72,3 +72,9 @@ func RecordExist(tableName string, columnName string, value string) bool {
 	return exists
 }
 
+func BothExists(tablename string, column1 string, value1 string, column2 string, value2 string) bool {
+	var exists bool
+	query := "select exists(select * from " + tablename + " where " + column1 + " = '" + value1 + "' and " + column2 + " = ' " + value2 + "');"
+	db.Raw(query).Scan(&exists)
+	return exists
+}
