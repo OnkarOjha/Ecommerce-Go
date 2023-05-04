@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"gorm.io/gorm"
 )
 
@@ -77,4 +79,25 @@ func BothExists(tablename string, column1 string, value1 string, column2 string,
 	query := "select exists(select * from " + tablename + " where " + column1 + " = '" + value1 + "' and " + column2 + " = ' " + value2 + "');"
 	db.Raw(query).Scan(&exists)
 	return exists
+}
+
+func SearchHistoryClear() {
+	fmt.Println("clearing previous history...")
+	db.Exec(`CREATE OR REPLACE FUNCTION truncate_rows_if_exceeds_threshold(threshold INTEGER, table_name TEXT) RETURNS VOID AS $$
+	DECLARE
+		count_rows INTEGER;
+	BEGIN
+		-- Get the count of rows in the table
+		EXECUTE format('SELECT COUNT(*) FROM %I', table_name) INTO count_rows;
+	
+		-- Check if the count of rows exceeds the threshold value
+		IF count_rows > threshold THEN
+			-- Truncate the first 10 rows
+			
+			EXECUTE format('DELETE FROM %I WHERE id IN (SELECT id FROM %I LIMIT 10)', table_name, table_name);
+		END IF;
+	END;
+	$$ LANGUAGE plpgsql;
+	`)
+	db.Exec(`SELECT truncate_rows_if_exceeds_threshold(20, 'search_histories');`)
 }

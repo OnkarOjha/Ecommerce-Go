@@ -30,6 +30,13 @@ func ConfigureRoutes(server *Server) {
 	server.engine.POST("/payment", handler.MakePaymentHandler)
 	server.engine.GET("/orderDetails", handler.GetOrderDetails)
 
+	//filter & search handler
+	server.engine.GET("/filter/category", handler.FilterByCategoryHandler)
+	server.engine.GET("/filter/price", handler.FilterByPriceHandler)
+	server.engine.GET("/filter/brand", handler.FilterByBrandHandler)
+	server.engine.GET("/searchBar", handler.SearchBarHandler)
+	server.engine.GET("/searchBar/history", handler.SearchBarHistoryHandler)
+
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 }
