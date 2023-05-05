@@ -11,8 +11,8 @@ import (
 )
 
 func AddToCartHandler(context *gin.Context) {
-	utils.SetHeader(context)
 
+	utils.SetHeader(context)
 	var addToCartRequest request.AddToCartRequest
 
 	err := utils.RequestDecoding(context, &addToCartRequest)

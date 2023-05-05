@@ -79,7 +79,6 @@ func UserLoginService(context *gin.Context, userLogin request.UserLogin) {
 		response.ErrorResponse(context, 400, "Error sending OTP")
 		return
 	}
-
 }
 
 func SendOtpService(context *gin.Context, contact string) (bool, *string) {

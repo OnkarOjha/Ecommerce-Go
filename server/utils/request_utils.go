@@ -15,7 +15,6 @@ func RequestDecoding(context *gin.Context, data interface{}) error {
 	}
 	err = json.Unmarshal(reqBody, &data)
 	if err != nil {
-
 		return err
 	}
 	return nil
