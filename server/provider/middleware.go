@@ -2,9 +2,10 @@ package provider
 
 import (
 	"main/server/db"
+	"main/server/model"
 	"main/server/response"
 	"main/server/utils"
-	"main/server/model"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,25 +20,29 @@ func UserAuthorization(c *gin.Context) {
 			c, 401, "Error fetching token",
 		)
 		c.Abort()
+		return
 	}
-	claims, err := DecodeToken(tokenString)
+	claims, err := DecodeToken(c, tokenString)
 	if err != nil {
 		response.ErrorResponse(
-			c, 401, "Error decoding token or invalid token",
+			c, 401, "Error : "+err.Error(),
 		)
 		c.Abort()
+		return
 	}
+
 	var userSession model.Session
-	err = db.FindById(&userSession , claims.UserId , "user_id")
-	if err!=nil{
+	err = db.FindById(&userSession, claims.UserId, "user_id")
+	if err != nil {
 		response.ErrorResponse(
 			c, 401, "User Id retrieved through token does not exist",
 		)
 		c.Abort()
+		return
 	}
 
-	err = db.FindById(&userSession , tokenString, "token")
-	if err!=nil{
+	err = db.FindById(&userSession, tokenString, "token")
+	if err != nil {
 		response.ErrorResponse(
 			c, 400, "Token does not match any session",
 		)
