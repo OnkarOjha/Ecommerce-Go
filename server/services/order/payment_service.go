@@ -22,7 +22,7 @@ func UserIdFromToken(context *gin.Context) (string, error) {
 
 		return "", err
 	}
-	claims, err := provider.DecodeToken(tokenString)
+	claims, err := provider.DecodeToken(context, tokenString)
 	if err != nil {
 
 		return "", err

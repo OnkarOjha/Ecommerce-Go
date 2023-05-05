@@ -2,7 +2,10 @@ package provider
 
 import (
 	"fmt"
+	"time"
+
 	// "main/server/model"
+	"main/server/db"
 	"main/server/model"
 	"main/server/response"
 	"os"
@@ -26,7 +29,7 @@ func GenerateToken(claims model.Claims, context *gin.Context) string {
 }
 
 //Decode Token function
-func DecodeToken(tokenString string) (model.Claims, error) {
+func DecodeToken(context *gin.Context, tokenString string) (model.Claims, error) {
 	claims := &model.Claims{}
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -37,51 +40,28 @@ func DecodeToken(tokenString string) (model.Claims, error) {
 	})
 
 	if err != nil || !parsedToken.Valid {
-		return *claims, fmt.Errorf("invalid or expired token")
+		if claims.ExpiresAt != nil && (*claims.ExpiresAt).Before(time.Now()) {
+			var userToBeLoggedOut model.User
+			err := db.FindById(&userToBeLoggedOut, claims.UserId, "user_id")
+			if err != nil {
+				return *claims, fmt.Errorf("error finding user in db")
+			}
+			query := "UPDATE users SET is_active = false WHERE user_id = '" + claims.UserId + "'"
+			db.QueryExecutor(query, &userToBeLoggedOut)
+			fmt.Println("user to be logged out ", userToBeLoggedOut)
+
+			var userSessionToBeDeleted model.Session
+			err = db.FindById(&userSessionToBeDeleted, claims.UserId, "user_id")
+			if err != nil {
+				return *claims, fmt.Errorf("error finding user in db")
+			}
+
+			db.DeleteRecord(&userSessionToBeDeleted, claims.UserId, "user_id")
+
+			return *claims, fmt.Errorf("token has expired , please proceed to login")
+		}
+		return *claims, fmt.Errorf("invalid token")
 	}
 
 	return *claims, nil
-}
-
-//Set cookie handler
-func SetCookie(context *gin.Context, tokenString string) {
-
-	context.SetCookie(
-		"cookie",
-		tokenString,
-		7200,
-		"/",
-		"localhost",
-		false,
-		true,
-	)
-
-	response.ShowResponse(
-		"Success",
-		200,
-		"Cookies saved successfully",
-		"",
-		context,
-	)
-}
-
-//Delete cookie handler
-func DeleteCookie(context *gin.Context) {
-	context.SetCookie(
-		"cookie",
-		"",
-		-1,
-		"",
-		"",
-		false,
-		false,
-	)
-
-	response.ShowResponse(
-		"Success",
-		200,
-		"Cookie deleted successfully",
-		"",
-		context,
-	)
 }

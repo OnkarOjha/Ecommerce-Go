@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"main/server/db"
 	"main/server/model"
 	"main/server/provider"
@@ -57,9 +56,7 @@ func UserLoginService(context *gin.Context, userLogin request.UserLogin) {
 		return
 	} else {
 		if db.RecordExist("users", "is_active", "false") {
-			fmt.Println("signing in  old user")
 			// it's an old user who is trying to login
-			fmt.Println(twilioClient.Client.AccountSid())
 			ok, sid := SendOtpService(context, "+91"+userLogin.UserContact)
 			if ok {
 				response.ShowResponse("Success", 200, "Welcome back! OTP sent successfully", sid, context)
@@ -85,11 +82,11 @@ func UserLoginService(context *gin.Context, userLogin request.UserLogin) {
 
 func SendOtpService(context *gin.Context, contact string) (bool, *string) {
 	params := &openapi.CreateVerificationParams{}
-	fmt.Println("contact", contact)
+
 	params.SetTo(contact)
 
 	params.SetChannel("sms")
-	fmt.Println("veify service sid: ", os.Getenv("VERIFY_SERVICE_SID"))
+
 	resp, err := twilioClient.VerifyV2.CreateVerification(os.Getenv("VERIFY_SERVICE_SID"), params)
 
 	if err != nil {
@@ -105,7 +102,7 @@ func VerifyOtpService(context *gin.Context, verifyOtpRequest request.VerifyOtp) 
 	params.SetTo("+91" + verifyOtpRequest.UserContact)
 
 	params.SetCode(verifyOtpRequest.Otp)
-	fmt.Println("params:", verifyOtpRequest)
+
 	resp, err := twilioClient.VerifyV2.CreateVerificationCheck(os.Getenv("VERIFY_SERVICE_SID"), params)
 
 	if err != nil {
@@ -117,7 +114,7 @@ func VerifyOtpService(context *gin.Context, verifyOtpRequest request.VerifyOtp) 
 		var user model.User
 		var userSession model.Session
 		err := db.FindById(&user, verifyOtpRequest.UserContact, "contact")
-		fmt.Println("user: ", user)
+
 		if err != nil {
 			response.ErrorResponse(context, 500, "Error finding user in DB")
 			return
@@ -195,20 +192,20 @@ func LogoutUserService(context *gin.Context, logoutUser request.LogoutUser) {
 
 	user.Is_Active = false
 	query := "UPDATE users set is_active=false where user_id=?"
-	db.QueryExecutor(query , user , user.UserId)
+	db.QueryExecutor(query, user, user.UserId)
 
-	var userSession  model.Session
-	err = db.FindById(&userSession , logoutUser.UserId ,"user_id")
+	var userSession model.Session
+	err = db.FindById(&userSession, logoutUser.UserId, "user_id")
 	if err != nil {
 		response.ErrorResponse(context, 400, "Error finding user session")
 		return
 	}
-	err = db.DeleteRecord(&userSession , userSession.
-	UserId , "user_id")
-	if err!=nil{
-		response.ErrorResponse(context , 400, "Error deleting user session")
+	err = db.DeleteRecord(&userSession, userSession.
+		UserId, "user_id")
+	if err != nil {
+		response.ErrorResponse(context, 400, "Error deleting user session")
 		return
 	}
 
-	response.ShowResponse("Success" , 200 , "Logout Successfull" , user , context)
+	response.ShowResponse("Success", 200, "Logout Successfull", user, context)
 }
