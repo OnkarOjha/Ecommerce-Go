@@ -7,9 +7,9 @@ import (
 )
 
 type Payment struct {
-	PaymentId     string         `json:"paymentId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
+	OrderId       string         `json:"orderId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
+	PaymentId     string         `json:"paymentId"`
 	UserId        string         `json:"userId"`
-	OrderId       string         `json:"orderId"`
 	PaymentAmount float64        `json:"amount"`
 	PaymentType   string         `json:"paymentType"`
 	PaymentStatus string         `json:"paymentStatus"`

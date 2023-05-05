@@ -126,7 +126,7 @@ func VerifyOtpService(context *gin.Context, verifyOtpRequest request.VerifyOtp) 
 		tokenClaims.UserId = user.UserId
 		tokenClaims.Phone = user.Contact
 		tokenClaims.Role = "customer"
-		tokenClaims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Hour * 2))
+		tokenClaims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Hour * 24))
 
 		db.UpdateRecord(&user, user.UserId, "user_id")
 
