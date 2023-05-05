@@ -10,7 +10,6 @@ import (
 )
 
 func ConfigureRoutes(server *Server) {
-
 	// user handlers
 	server.engine.POST("/register", handler.UserRegisterHandler)
 	server.engine.POST("/login", handler.UserLoginHandler)
@@ -29,6 +28,8 @@ func ConfigureRoutes(server *Server) {
 	//payment handler
 	server.engine.POST("/payment", handler.MakePaymentHandler)
 	server.engine.GET("/orderDetails", handler.GetOrderDetails)
+	server.engine.PUT("/cancelOrder", handler.CancelOrderHandler)
+	server.engine.POST("/cartPayment", handler.MakeCartPaymentHandler)
 
 	//filter & search handler
 	server.engine.GET("/filter/category", handler.FilterByCategoryHandler)
@@ -36,6 +37,10 @@ func ConfigureRoutes(server *Server) {
 	server.engine.GET("/filter/brand", handler.FilterByBrandHandler)
 	server.engine.GET("/searchBar", handler.SearchBarHandler)
 	server.engine.GET("/searchBar/history", handler.SearchBarHistoryHandler)
+
+	//user address handler
+	server.engine.POST("/user/address", handler.UserAddressHandler)
+	server.engine.GET("user/addressGet", handler.UserAddressRetrieveHandler)
 
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

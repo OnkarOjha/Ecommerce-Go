@@ -8,6 +8,7 @@ import (
 	"main/server/request"
 	"main/server/response"
 	"main/server/utils"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -110,6 +111,12 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 		return
 	}
 
+	addressType := context.Query("addresstype")
+	if addressType == "" {
+		response.ErrorResponse(context, 400, "No Address specified")
+		return
+	}
+
 	var cartProduct model.CartProducts
 	if !db.RecordExist("cart_products", "cart_id", paymentRequest.CartId) {
 		response.ErrorResponse(context, 400, "Cart id not found")
@@ -155,8 +162,14 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 	order.PaymentId = pi1.ID
 	order.UserId = userId
 	order.OrderQuantity = cartProduct.ProductCount
-	order.OrderStatus = "Booked"
+	order.OrderStatus = "CONFIRMED"
 	order.OrderDate = time.Now().Format("2006-January-02")
+	address, err := AlotAddressForConfirmedOrders(context, userId, addressType)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+	order.OrderAddress = address
 	err = db.CreateRecord(&order)
 	if err != nil {
 		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
@@ -240,6 +253,7 @@ func GetOrderDetails(context *gin.Context) {
 		PaymentAmount:   paymentInfo.PaymentAmount,
 		PaymentDate:     paymentInfo.CreatedAt,
 		CartId:          orderInfo.CartId,
+		OrderStatus:     orderInfo.OrderStatus,
 		ProductId:       orderInfo.ProductId,
 		ProductName:     productInfo.ProductName,
 		ProductCategory: productInfo.ProductCategory,
@@ -250,6 +264,146 @@ func GetOrderDetails(context *gin.Context) {
 		"Success",
 		200,
 		"Here are your order details",
+		orderCompleteData,
+		context,
+	)
+
+}
+
+func AlotAddressForConfirmedOrders(context *gin.Context, userId string, addressType string) (string, error) {
+	var userDefaultAddress model.UserAddresses
+	query := "SELECT * FROM user_addresses WHERE user_id='" + userId + "' AND address_type='" + addressType + "'"
+	err := db.QueryExecutor(query, &userDefaultAddress)
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error finding user from DB")
+		return "", err
+	}
+
+	address := userDefaultAddress.Name + " , " + userDefaultAddress.Street + " , " + userDefaultAddress.City + " , " + userDefaultAddress.State + " , " + userDefaultAddress.Country + " ,zip: " + userDefaultAddress.PostalCode + " , ph: " + userDefaultAddress.Phone
+
+	return address, nil
+}
+
+func CancelOrderService(context *gin.Context, cancelOrderRequest request.CancelOrderRequest) {
+
+	var order model.Order
+	var payment model.Payment
+	err := db.FindById(&order, cancelOrderRequest.OrderId, "order_id")
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error fetching order details")
+		return
+	}
+
+	if order.OrderStatus != "CONFIRMED" {
+		response.ErrorResponse(context, 400, "Order not confirmed")
+		return
+	}
+
+	err = db.FindById(&payment, order.PaymentId, "payment_id")
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error fetching payment details")
+		return
+	}
+	order.OrderStatus = "CANCELLED"
+	query := "UPDATE orders SET order_status = 'CANCELLED' WHERE order_id ='" + order.OrderId + "'"
+	db.QueryExecutor(query, &order)
+
+	// amount refund
+	payment.RefundAmount = payment.PaymentAmount - payment.PaymentAmount*2.7
+	query = "UPDATE payments set refund_amount = '" + strconv.Itoa(int(payment.RefundAmount)) + "' WHERE payment_id ='" + payment.PaymentId + "'"
+	db.QueryExecutor(query, &payment)
+
+	var userPayment model.UserPayments
+	db.Delete(&userPayment, payment.PaymentId, "payment_id")
+}
+
+func MakeCartPaymentService(context *gin.Context, paymentRequest request.CartOrderRequest) {
+	userId, err := UserIdFromToken(context)
+	if err != nil {
+		response.ErrorResponse(context, 401, "Error decoding token or invalid token")
+		return
+	}
+
+	addressType := context.Query("addresstype")
+	if addressType == "" {
+		response.ErrorResponse(context, 400, "No Address specified")
+		return
+	}
+
+	var cartProduct model.Cart
+	// if db.RecordExist("cart_products", "cart_id", paymentRequest.CartId) {
+	// 	response.ErrorResponse(context, 400, "Order with the same cart id")
+	// 	return
+	// }
+	fmt.Println("fkjfj", paymentRequest)
+	err = db.FindById(&cartProduct, paymentRequest.CartId, "cart_id")
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error retrieving cart Details with given cart_id")
+		return
+	}
+
+	pi, pi1 := StripePayment(int64(cartProduct.TotalPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, context)
+	fmt.Println("pi", pi.Status)
+	fmt.Println("pi1", pi1)
+
+	var payment model.Payment
+	//create payment
+	payment.PaymentId = pi1.ID
+	payment.UserId = userId
+	payment.PaymentAmount = cartProduct.TotalPrice
+	payment.PaymentType = "card"
+	payment.PaymentStatus = string(pi1.Status)
+	err = db.CreateRecord(&payment)
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		return
+	}
+
+	//create order
+	var order model.Order
+	order.OrderId = payment.OrderId
+	order.CartId = paymentRequest.CartId
+	order.PaymentId = pi1.ID
+	order.UserId = userId
+	order.OrderQuantity = 1
+	order.OrderStatus = "CONFIRMED"
+	order.OrderDate = time.Now().Format("2006-January-02")
+	address, err := AlotAddressForConfirmedOrders(context, userId, addressType)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+	order.OrderAddress = address
+	err = db.CreateRecord(&order)
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		return
+	}
+
+	//create user payment details
+	var userPaymentDetails model.UserPayments
+	userPaymentDetails.PaymentId = payment.PaymentId
+	userPaymentDetails.UserId = userId
+	userPaymentDetails.OrderId = payment.OrderId
+	err = db.CreateRecord(&userPaymentDetails)
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		return
+	}
+
+	orderCompleteData := &response.CartOrderCompletionResponse{
+		OrderId:       payment.OrderId,
+		UserId:        userId,
+		PaymentId:     pi1.ID,
+		PaymentAmount: cartProduct.TotalPrice,
+		PaymentDate:   payment.CreatedAt,
+		CartId:        paymentRequest.CartId,
+	}
+
+	response.ShowResponse(
+		"Success",
+		200,
+		"Congratulations your order has been created successfully",
 		orderCompleteData,
 		context,
 	)

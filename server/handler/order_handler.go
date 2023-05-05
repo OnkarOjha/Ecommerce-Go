@@ -15,9 +15,13 @@ func MakePaymentHandler(context *gin.Context) {
 
 	var paymentRequest request.OrderRequest
 
-	utils.RequestDecoding(context, &paymentRequest)
+	err := utils.RequestDecoding(context, &paymentRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
 
-	err := validation.CheckValidation(&paymentRequest)
+	err = validation.CheckValidation(&paymentRequest)
 	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
@@ -30,4 +34,40 @@ func GetOrderDetails(context *gin.Context) {
 	utils.SetHeader(context)
 
 	order.GetOrderDetails(context)
+}
+
+func CancelOrderHandler(context *gin.Context) {
+	utils.SetHeader(context)
+
+	var cancelOrderRequest request.CancelOrderRequest
+	err := utils.RequestDecoding(context, &cancelOrderRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	err = validation.CheckValidation(&cancelOrderRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	order.CancelOrderService(context, cancelOrderRequest)
+}
+
+func MakeCartPaymentHandler(context *gin.Context) {
+	utils.SetHeader(context)
+	var paymentRequest request.CartOrderRequest
+	err := utils.RequestDecoding(context, &paymentRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	err = validation.CheckValidation(&paymentRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+	order.MakeCartPaymentService(context, paymentRequest)
 }

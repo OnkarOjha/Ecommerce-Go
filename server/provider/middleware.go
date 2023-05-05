@@ -25,7 +25,7 @@ func UserAuthorization(c *gin.Context) {
 	claims, err := DecodeToken(c, tokenString)
 	if err != nil {
 		response.ErrorResponse(
-			c, 401, "Error : "+err.Error(),
+			c, 401, "Error :"+err.Error(),
 		)
 		c.Abort()
 		return

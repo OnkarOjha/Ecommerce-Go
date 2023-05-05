@@ -5,26 +5,25 @@ type UserRequest struct {
 	UserContact string `json:"usercontact" validate:"required,len=10"`
 }
 
-type UserLogin struct{
+type UserLogin struct {
 	UserContact string `json:"usercontact" validate:"required,len=10"`
 }
 
-type VerifyOtp struct{
+type VerifyOtp struct {
 	UserContact string `json:"usercontact" validate:"required,len=10"`
-	Otp string `json:"otp" validate:"required,len=6"`
+	Otp         string `json:"otp" validate:"required,len=6"`
 }
 
-type GetUser struct{
+type GetUser struct {
 	UserId string `json:"userId" validate:"required"`
 }
 
-type EditUser struct{
-	UserId string `json:"userId" validate:"required"`
-	Gender string `json:"gender"  validate:"oneof=male female"`
+type EditUser struct {
+	UserId   string `json:"userId" validate:"required"`
+	Gender   string `json:"gender"  validate:"oneof=male female"`
 	UserName string `json:"username"`
 }
 
-
-type LogoutUser struct{
+type LogoutUser struct {
 	UserId string `json:"userId" validate:"required"`
 }
