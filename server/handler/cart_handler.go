@@ -15,71 +15,85 @@ func AddToCartHandler(context *gin.Context) {
 
 	var addToCartRequest request.AddToCartRequest
 
-	utils.RequestDecoding(context , &addToCartRequest)
-
-	err := validation.CheckValidation(&addToCartRequest)
+	err := utils.RequestDecoding(context, &addToCartRequest)
 	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	cart.AddToCartService(context , addToCartRequest)
+	err = validation.CheckValidation(&addToCartRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	cart.AddToCartService(context, addToCartRequest)
 
 }
 
-func AddProductHandler(context *gin.Context){
+func AddProductHandler(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var addToCartRequest request.AddToCartRequest
 
-	utils.RequestDecoding(context , &addToCartRequest)
-
-	err := validation.CheckValidation(&addToCartRequest)
+	err := utils.RequestDecoding(context, &addToCartRequest)
 	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	cart.AddProductService(context , addToCartRequest)
+	err = validation.CheckValidation(&addToCartRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	cart.AddProductService(context, addToCartRequest)
 
 }
 
-func RemoveFromCartHandler(context *gin.Context){
+func RemoveFromCartHandler(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var removeFromCartRequest request.RemoveFromCart
 
-	utils.RequestDecoding(context, &removeFromCartRequest)
-
-	err := validation.CheckValidation(&removeFromCartRequest)
+	err := utils.RequestDecoding(context, &removeFromCartRequest)
 	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	cart.RemoveFromCartService(context , removeFromCartRequest)
+	err = validation.CheckValidation(&removeFromCartRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	cart.RemoveFromCartService(context, removeFromCartRequest)
 }
 
-func RemoveProductHandler(context *gin.Context){
+func RemoveProductHandler(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var removeProductFromCart request.RemoveProduct
 
-	utils.RequestDecoding(context, &removeProductFromCart)
-
-	err := validation.CheckValidation(&removeProductFromCart)
+	err := utils.RequestDecoding(context, &removeProductFromCart)
 	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	cart.RemoveProductService(context , removeProductFromCart)
+	err = validation.CheckValidation(&removeProductFromCart)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	cart.RemoveProductService(context, removeProductFromCart)
 
 }
 
-func GetCartDetailsHandler(context *gin.Context){
+func GetCartDetailsHandler(context *gin.Context) {
 	utils.SetHeader(context)
 	cart.GetCartDetailsService(context)
 }
-
-

@@ -6,7 +6,9 @@ import (
 	"main/server/provider"
 	"main/server/request"
 	"main/server/response"
+	"main/server/services/order"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -208,4 +210,103 @@ func LogoutUserService(context *gin.Context, logoutUser request.LogoutUser) {
 	}
 
 	response.ShowResponse("Success", 200, "Logout Successfull", user, context)
+}
+
+func UserAddressService(context *gin.Context, userAddressRequest model.UserAddresses) {
+
+	userId, err := order.UserIdFromToken(context)
+	if err != nil {
+		response.ErrorResponse(context, 401, "Invalid token")
+		return
+	}
+
+	if userId == "" {
+		response.ErrorResponse(context, 400, "No User ID provided")
+		return
+	}
+	var dbConstants model.DbConstant
+	dbConstants.ConstantName = strings.ToLower(userAddressRequest.AddressType)
+	if strings.ToLower(userAddressRequest.AddressType) == "default" {
+		dbConstants.ConstantShortHand = "DEFAULT"
+	}
+	if strings.ToLower(userAddressRequest.AddressType) == "home" {
+		dbConstants.ConstantShortHand = "HOME"
+	}
+	if strings.ToLower(userAddressRequest.AddressType) == "work" {
+		dbConstants.ConstantShortHand = "WORK"
+	}
+	userAddressRequest.AddressType = dbConstants.ConstantShortHand
+	userAddressRequest.UserId = userId
+	err = db.CreateRecord(&userAddressRequest)
+	if err != nil {
+		response.ErrorResponse(context, 500, "Error creating DB record")
+		return
+	}
+
+	DBConstantService(context, dbConstants)
+
+	response.ShowResponse(
+		"Success",
+		200,
+		"User Address logged Successfully",
+		userAddressRequest,
+		context,
+	)
+}
+
+func DBConstantService(context *gin.Context, dbConstants model.DbConstant) {
+	if dbConstants.ConstantShortHand == "DEFAULT" || dbConstants.ConstantShortHand == "HOME" || dbConstants.ConstantShortHand != "WORK" {
+		exists1 := db.RecordExist("db_constants", "constant_short_hand", "DEFAULT")
+		exists2 := db.RecordExist("db_constants", "constant_short_hand", "HOME")
+		exists3 := db.RecordExist("db_constants", "constant_short_hand", "WORK")
+		if !exists1 || !exists2 || !exists3 {
+			err := db.CreateRecord(&dbConstants)
+			if err != nil {
+				response.ErrorResponse(context, 500, "Error creating DB record")
+				return
+			}
+		}
+	}
+}
+
+func UserAddressRetrieveService(context *gin.Context) {
+	addressType := context.Query("addresstype")
+
+	if addressType == "" {
+		response.ErrorResponse(context, 400, "Address type not specified")
+		return
+	}
+	var userAddress []model.UserAddresses
+	if addressType == "DEFAULT" {
+		query := "SELECT * FROM user_addresses WHERE address_type='" + addressType + "'"
+		err := db.QueryExecutor(query, &userAddress)
+		if err != nil {
+			response.ErrorResponse(context, 500, "Error finding user address")
+			return
+		}
+	}
+	if addressType == "HOME" {
+		query := "SELECT * FROM user_addresses WHERE address_type='" + addressType + "'"
+		err := db.QueryExecutor(query, &userAddress)
+		if err != nil {
+			response.ErrorResponse(context, 500, "Error finding user address")
+			return
+		}
+	}
+	if addressType == "WORK" {
+		query := "SELECT * FROM user_addresses WHERE address_type='" + addressType + "'"
+		err := db.QueryExecutor(query, &userAddress)
+		if err != nil {
+			response.ErrorResponse(context, 500, "Error finding user address")
+			return
+		}
+	}
+
+	response.ShowResponse(
+		"Success",
+		200,
+		"User Address retrieved successfully",
+		userAddress,
+		context,
+	)
 }

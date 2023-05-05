@@ -37,6 +37,10 @@ func ConfigureRoutes(server *Server) {
 	server.engine.GET("/searchBar", handler.SearchBarHandler)
 	server.engine.GET("/searchBar/history", handler.SearchBarHistoryHandler)
 
+	//user address handler
+	server.engine.POST("/user/address", handler.UserAddressHandler)
+	server.engine.GET("user/addressGet", handler.UserAddressRetrieveHandler)
+
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 }

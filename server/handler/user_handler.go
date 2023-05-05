@@ -1,7 +1,7 @@
-
 package handler
 
 import (
+	"main/server/model"
 	"main/server/request"
 	"main/server/response"
 	"main/server/services/user"
@@ -25,42 +25,49 @@ func UserRegisterHandler(context *gin.Context) {
 		return
 	}
 
-	user.RegisterUserService(context ,registerRequest)
+	user.RegisterUserService(context, registerRequest)
 
 }
 
-func UserLoginHandler(context *gin.Context){
+func UserLoginHandler(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var userLogin request.UserLogin
 
-	utils.RequestDecoding(context, &userLogin)
-
-	err := validation.CheckValidation(&userLogin)
-	if err!=nil{
-		response.ErrorResponse(context , 400 , err.Error())
+	err := utils.RequestDecoding(context, &userLogin)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
-	
-	user.UserLoginService(context , userLogin)
+
+	err = validation.CheckValidation(&userLogin)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	user.UserLoginService(context, userLogin)
 }
 
-
-func UserVerifyOtpHandler(context *gin.Context){
+func UserVerifyOtpHandler(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var verifyOtpRequest request.VerifyOtp
 
-	utils.RequestDecoding(context , &verifyOtpRequest)
-
-	err := validation.CheckValidation(&verifyOtpRequest)
-
-	if err!=nil{
-		response.ErrorResponse(context , 400 , err.Error())
+	err := utils.RequestDecoding(context, &verifyOtpRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	user.VerifyOtpService(context , verifyOtpRequest)
+	err = validation.CheckValidation(&verifyOtpRequest)
+
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	user.VerifyOtpService(context, verifyOtpRequest)
 }
 
 func GetUserByIdHandler(context *gin.Context) {
@@ -69,9 +76,13 @@ func GetUserByIdHandler(context *gin.Context) {
 
 	var getUser request.GetUser
 
-	utils.RequestDecoding(context, &getUser)
+	err := utils.RequestDecoding(context, &getUser)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
 
-	err := validation.CheckValidation(&getUser)
+	err = validation.CheckValidation(&getUser)
 	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
@@ -81,36 +92,71 @@ func GetUserByIdHandler(context *gin.Context) {
 
 }
 
-func EditUserProfile(context *gin.Context){
+func EditUserProfile(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var editUserRequest request.EditUser
 
-	utils.RequestDecoding(context , &editUserRequest)
-
-	err := validation.CheckValidation(&editUserRequest)
-	if err!=nil{
+	err := utils.RequestDecoding(context, &editUserRequest)
+	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	user.EditUserService(context , editUserRequest)
+	err = validation.CheckValidation(&editUserRequest)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	user.EditUserService(context, editUserRequest)
 
 }
 
-func UserLogoutHandler(context *gin.Context){
+func UserLogoutHandler(context *gin.Context) {
 	utils.SetHeader(context)
 
 	var logoutUser request.LogoutUser
 
-	utils.RequestDecoding(context , &logoutUser)
-
-	err := validation.CheckValidation(&logoutUser)
-	if err!=nil{
+	err := utils.RequestDecoding(context, &logoutUser)
+	if err != nil {
 		response.ErrorResponse(context, 400, err.Error())
 		return
 	}
 
-	user.LogoutUserService(context , logoutUser)
+	err = validation.CheckValidation(&logoutUser)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
 
+	user.LogoutUserService(context, logoutUser)
+
+}
+
+func UserAddressHandler(context *gin.Context) {
+	utils.SetHeader(context)
+
+	var userAddress model.UserAddresses
+
+	err := utils.RequestDecoding(context, &userAddress)
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	err = userAddress.Validate()
+	if err != nil {
+		response.ErrorResponse(context, 400, err.Error())
+		return
+	}
+
+	user.UserAddressService(context, userAddress)
+
+}
+
+func UserAddressRetrieveHandler(context *gin.Context) {
+	utils.SetHeader(context)
+
+	user.UserAddressRetrieveService(context)
 }
