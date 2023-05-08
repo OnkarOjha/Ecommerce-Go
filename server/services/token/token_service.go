@@ -1,21 +1,27 @@
-package provider
+package token
 
 import (
 	"fmt"
-	"time"
-
-	// "main/server/model"
 	"main/server/db"
 	"main/server/model"
 	"main/server/response"
+	"main/server/utils"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type Claims struct {
+	UserId string `json:"userId"`
+	Phone  string `json:"phone"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
+}
+
 //Generate JWT Token
-func GenerateToken(claims model.Claims, context *gin.Context) string {
+func GenerateToken(claims Claims, context *gin.Context) string {
 	//create user claims
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -23,14 +29,14 @@ func GenerateToken(claims model.Claims, context *gin.Context) string {
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWTKEY")))
 
 	if err != nil {
-		response.ErrorResponse(context, 401, "Error signing token")
+		response.ErrorResponse(context, utils.HTTP_UNAUTHORIZED, "Error signing token")
 	}
 	return tokenString
 }
 
 //Decode Token function
-func DecodeToken(context *gin.Context, tokenString string) (model.Claims, error) {
-	claims := &model.Claims{}
+func DecodeToken(context *gin.Context, tokenString string) (Claims, error) {
+	claims := &Claims{}
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

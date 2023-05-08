@@ -2,28 +2,27 @@ package order
 
 import (
 	"fmt"
-	"main/server/db"
-	"main/server/model"
-	"main/server/provider"
-	"main/server/request"
-	"main/server/response"
-	"main/server/utils"
-	"strconv"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/paymentintent"
 	"github.com/stripe/stripe-go/v72/paymentmethod"
+	"main/server/context"
+	"main/server/db"
+	"main/server/model"
+	"main/server/response"
+	"main/server/services/token"
+	"main/server/utils"
+	"strconv"
+	"time"
 )
 
-func UserIdFromToken(context *gin.Context) (string, error) {
-	tokenString, err := utils.GetTokenFromAuthHeader(context)
+func UserIdFromToken(ctx *gin.Context) (string, error) {
+	tokenString, err := utils.GetTokenFromAuthHeader(ctx)
 	if err != nil {
 
 		return "", err
 	}
-	claims, err := provider.DecodeToken(context, tokenString)
+	claims, err := token.DecodeToken(ctx, tokenString)
 	if err != nil {
 
 		return "", err
@@ -31,7 +30,7 @@ func UserIdFromToken(context *gin.Context) (string, error) {
 	return claims.UserId, nil
 }
 
-func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear string, cvc string, context *gin.Context) (pi, pi1 *stripe.PaymentIntent) {
+func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear string, cvc string, ctx *gin.Context) (pi, pi1 *stripe.PaymentIntent) {
 	//TODO
 	stripe.Key = "sk_test_51MvCYxSGxKXiPagaKdfa8MM2nYhjysJ41IUESqCLjca0meSTlzal4wbqMFZDbpTa5w1YXvdwygU8yMYbBecfgLCC00Yrx2WfFF"
 
@@ -45,7 +44,7 @@ func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear
 		},
 	})
 	if err != nil {
-		response.ErrorResponse(context, 400, "Error creating card details")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error creating card details")
 		return
 	}
 
@@ -58,7 +57,7 @@ func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear
 	}
 	pi, err = paymentintent.New(params)
 	if err != nil {
-		response.ErrorResponse(context, 503, "Error processing payment")
+		response.ErrorResponse(ctx, 503, "Error processing payment")
 		return
 	}
 
@@ -69,16 +68,16 @@ func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear
 
 	pi1, err = paymentintent.Confirm(pi.ID, params1)
 	if err != nil {
-		response.ErrorResponse(context, 503, "Error confirming payment")
+		response.ErrorResponse(ctx, 503, "Error confirming payment")
 		return
 	}
 
 	switch pi1.Status {
 	case "succeeded":
-		response.ShowResponse("Success", 200, "Payment processed Successfully", "", context)
+		response.ShowResponse("Success", utils.HTTP_OK, "Payment processed Successfully", "", ctx)
 		return
 	case "requires_payment_method":
-		response.ErrorResponse(context, 400, "Requires Payment Method")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Requires Payment Method")
 		return
 	case "requires_action":
 
@@ -88,15 +87,15 @@ func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear
 
 				response.ShowResponse(
 					"Success",
-					200,
+					utils.HTTP_OK,
 					"Payment processed Successfully , Here is your client secret",
 					pi1.ClientSecret,
-					context,
+					ctx,
 				)
 			}
 		}
 	default:
-		response.ErrorResponse(context, 400, "Payment requires more actions")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Payment requires more actions")
 		return
 	}
 
@@ -104,39 +103,39 @@ func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear
 
 }
 
-func MakePaymentService(context *gin.Context, paymentRequest request.OrderRequest) {
-	userId, err := UserIdFromToken(context)
+func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
+	userId, err := UserIdFromToken(ctx)
 	if err != nil {
-		response.ErrorResponse(context, 401, "Error decoding token or invalid token")
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Error decoding token or invalid token")
 		return
 	}
 
-	addressType := context.Query("addresstype")
+	addressType := ctx.Query("addresstype")
 	if addressType == "" {
-		response.ErrorResponse(context, 400, "No Address specified")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "No Address specified")
 		return
 	}
 
 	var cartProduct model.CartProducts
 	if !db.RecordExist("cart_products", "cart_id", paymentRequest.CartId) {
-		response.ErrorResponse(context, 400, "Cart id not found")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Cart id not found")
 		return
 	}
 
 	if !db.RecordExist("cart_products", "product_id", paymentRequest.ProductId) {
-		response.ErrorResponse(context, 400, "Product id not found")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Product id not found")
 		return
 	}
 	err = db.FindById(&cartProduct, paymentRequest.CartId, "cart_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error retrieving cart Details with given cart_id")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving cart Details with given cart_id")
 		return
 	}
 	if db.BothExists("cart_products", "cart_id", paymentRequest.CartId, "product_id", paymentRequest.ProductId) {
-		response.ErrorResponse(context, 400, "This cart don't have any such product")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "This cart don't have any such product")
 		return
 	}
-	pi, pi1 := StripePayment(int64(cartProduct.ProductPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, context)
+	pi, pi1 := StripePayment(int64(cartProduct.ProductPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
 	fmt.Println("pi", pi.Status)
 	fmt.Println("pi1", pi1)
 
@@ -150,7 +149,7 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 	payment.PaymentStatus = string(pi1.Status)
 	err = db.CreateRecord(&payment)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 		return
 	}
 
@@ -163,16 +162,16 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 	order.UserId = userId
 	order.OrderQuantity = cartProduct.ProductCount
 	order.OrderStatus = "CONFIRMED"
-	order.OrderDate = time.Now().Format("2006-January-02")
-	address, err := AlotAddressForConfirmedOrders(context, userId, addressType)
+	order.OrderDate = time.Now().Format("utils.HTTP_OK 6-January-02")
+	address, err := AlotAddressForConfirmedOrders(ctx, userId, addressType)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 	order.OrderAddress = address
 	err = db.CreateRecord(&order)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 		return
 	}
 
@@ -183,7 +182,7 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 	userPaymentDetails.OrderId = payment.OrderId
 	err = db.CreateRecord(&userPaymentDetails)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 		return
 	}
 
@@ -191,7 +190,7 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 	var productDetails model.Products
 	err = db.FindById(&productDetails, paymentRequest.ProductId, "product_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error retrieving cart Details with given cart_id")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving cart Details with given cart_id")
 		return
 	}
 
@@ -210,39 +209,39 @@ func MakePaymentService(context *gin.Context, paymentRequest request.OrderReques
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Congratulations your order has been created successfully",
 		orderCompleteData,
-		context,
+		ctx,
 	)
 
 }
 
-func GetOrderDetails(context *gin.Context) {
-	userId, err := UserIdFromToken(context)
+func GetOrderDetails(ctx *gin.Context) {
+	userId, err := UserIdFromToken(ctx)
 	if err != nil {
-		response.ErrorResponse(context, 401, "Error decoding token or invalid token")
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Error decoding token or invalid token")
 		return
 	}
 
 	var paymentInfo model.Payment
 	err = db.FindById(&paymentInfo, userId, "user_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error retrieving user details")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving user details")
 		return
 	}
 
 	var orderInfo model.Order
 	err = db.FindById(&orderInfo, userId, "user_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error retrieving user details")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving user details")
 		return
 	}
 
 	var productInfo model.Products
 	err = db.FindById(&productInfo, orderInfo.ProductId, "product_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error retrieving user details")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving user details")
 		return
 	}
 
@@ -262,20 +261,20 @@ func GetOrderDetails(context *gin.Context) {
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Here are your order details",
 		orderCompleteData,
-		context,
+		ctx,
 	)
 
 }
 
-func AlotAddressForConfirmedOrders(context *gin.Context, userId string, addressType string) (string, error) {
+func AlotAddressForConfirmedOrders(ctx *gin.Context, userId string, addressType string) (string, error) {
 	var userDefaultAddress model.UserAddresses
 	query := "SELECT * FROM user_addresses WHERE user_id='" + userId + "' AND address_type='" + addressType + "'"
 	err := db.QueryExecutor(query, &userDefaultAddress)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error finding user from DB")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding user from DB")
 		return "", err
 	}
 
@@ -284,24 +283,24 @@ func AlotAddressForConfirmedOrders(context *gin.Context, userId string, addressT
 	return address, nil
 }
 
-func CancelOrderService(context *gin.Context, cancelOrderRequest request.CancelOrderRequest) {
+func CancelOrderService(ctx *gin.Context, cancelOrderRequest context.CancelOrderRequest) {
 
 	var order model.Order
 	var payment model.Payment
 	err := db.FindById(&order, cancelOrderRequest.OrderId, "order_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error fetching order details")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error fetching order details")
 		return
 	}
 
 	if order.OrderStatus != "CONFIRMED" {
-		response.ErrorResponse(context, 400, "Order not confirmed")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Order not confirmed")
 		return
 	}
 
 	err = db.FindById(&payment, order.PaymentId, "payment_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error fetching payment details")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error fetching payment details")
 		return
 	}
 	order.OrderStatus = "CANCELLED"
@@ -317,32 +316,32 @@ func CancelOrderService(context *gin.Context, cancelOrderRequest request.CancelO
 	db.Delete(&userPayment, payment.PaymentId, "payment_id")
 }
 
-func MakeCartPaymentService(context *gin.Context, paymentRequest request.CartOrderRequest) {
-	userId, err := UserIdFromToken(context)
+func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRequest) {
+	userId, err := UserIdFromToken(ctx)
 	if err != nil {
-		response.ErrorResponse(context, 401, "Error decoding token or invalid token")
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Error decoding token or invalid token")
 		return
 	}
 
-	addressType := context.Query("addresstype")
+	addressType := ctx.Query("addresstype")
 	if addressType == "" {
-		response.ErrorResponse(context, 400, "No Address specified")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "No Address specified")
 		return
 	}
 
 	var cartProduct model.Cart
 	// if db.RecordExist("cart_products", "cart_id", paymentRequest.CartId) {
-	// 	response.ErrorResponse(context, 400, "Order with the same cart id")
+	// 	response.ErrorResponse(context, utils.HTTP_BAD_REQUEST , "Order with the same cart id")
 	// 	return
 	// }
 	fmt.Println("fkjfj", paymentRequest)
 	err = db.FindById(&cartProduct, paymentRequest.CartId, "cart_id")
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error retrieving cart Details with given cart_id")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving cart Details with given cart_id")
 		return
 	}
 
-	pi, pi1 := StripePayment(int64(cartProduct.TotalPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, context)
+	pi, pi1 := StripePayment(int64(cartProduct.TotalPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
 	fmt.Println("pi", pi.Status)
 	fmt.Println("pi1", pi1)
 
@@ -355,7 +354,7 @@ func MakeCartPaymentService(context *gin.Context, paymentRequest request.CartOrd
 	payment.PaymentStatus = string(pi1.Status)
 	err = db.CreateRecord(&payment)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 		return
 	}
 
@@ -367,16 +366,16 @@ func MakeCartPaymentService(context *gin.Context, paymentRequest request.CartOrd
 	order.UserId = userId
 	order.OrderQuantity = 1
 	order.OrderStatus = "CONFIRMED"
-	order.OrderDate = time.Now().Format("2006-January-02")
-	address, err := AlotAddressForConfirmedOrders(context, userId, addressType)
+	order.OrderDate = time.Now().Format("utils.HTTP_OK 6-January-02")
+	address, err := AlotAddressForConfirmedOrders(ctx, userId, addressType)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 	order.OrderAddress = address
 	err = db.CreateRecord(&order)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 		return
 	}
 
@@ -387,7 +386,7 @@ func MakeCartPaymentService(context *gin.Context, paymentRequest request.CartOrd
 	userPaymentDetails.OrderId = payment.OrderId
 	err = db.CreateRecord(&userPaymentDetails)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 		return
 	}
 
@@ -402,10 +401,10 @@ func MakeCartPaymentService(context *gin.Context, paymentRequest request.CartOrd
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Congratulations your order has been created successfully",
 		orderCompleteData,
-		context,
+		ctx,
 	)
 
 }

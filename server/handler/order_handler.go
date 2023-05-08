@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"main/server/request"
+	"main/server/context"
 	"main/server/response"
 	"main/server/services/order"
 	"main/server/utils"
@@ -10,64 +10,64 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func MakePaymentHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func MakePaymentHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var paymentRequest request.OrderRequest
+	var paymentRequest context.OrderRequest
 
-	err := utils.RequestDecoding(context, &paymentRequest)
+	err := utils.RequestDecoding(ctx, &paymentRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&paymentRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	order.MakePaymentService(context, paymentRequest)
+	order.MakePaymentService(ctx, paymentRequest)
 }
 
-func GetOrderDetails(context *gin.Context) {
-	utils.SetHeader(context)
+func GetOrderDetails(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	order.GetOrderDetails(context)
+	order.GetOrderDetails(ctx)
 }
 
-func CancelOrderHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func CancelOrderHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var cancelOrderRequest request.CancelOrderRequest
-	err := utils.RequestDecoding(context, &cancelOrderRequest)
+	var cancelOrderRequest context.CancelOrderRequest
+	err := utils.RequestDecoding(ctx, &cancelOrderRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&cancelOrderRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	order.CancelOrderService(context, cancelOrderRequest)
+	order.CancelOrderService(ctx, cancelOrderRequest)
 }
 
-func MakeCartPaymentHandler(context *gin.Context) {
-	utils.SetHeader(context)
-	var paymentRequest request.CartOrderRequest
-	err := utils.RequestDecoding(context, &paymentRequest)
+func MakeCartPaymentHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+	var paymentRequest context.CartOrderRequest
+	err := utils.RequestDecoding(ctx, &paymentRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&paymentRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
-	order.MakeCartPaymentService(context, paymentRequest)
+	order.MakeCartPaymentService(ctx, paymentRequest)
 }

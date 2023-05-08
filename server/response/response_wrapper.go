@@ -11,7 +11,7 @@ type Error struct {
 
 type Success struct {
 	Status  string      `json:"status"`
-	Code    int64       `json:"code"`
+	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
@@ -20,7 +20,7 @@ func Response(context *gin.Context, statusCode int, data interface{}) {
 	context.JSON(statusCode, data)
 }
 
-func ShowResponse(status string, statusCode int64, message string, data interface{}, context *gin.Context) {
+func ShowResponse(status string, statusCode int, message string, data interface{}, context *gin.Context) {
 	context.Writer.Header().Set("Content-Type", "application/json")
 	context.Writer.WriteHeader(int(statusCode))
 	response := Success{

@@ -1,35 +1,25 @@
 package user
 
 import (
+	"main/server/context"
 	"main/server/db"
 	"main/server/model"
-	"main/server/provider"
-	"main/server/request"
 	"main/server/response"
 	"main/server/services/order"
-	"os"
+	"main/server/services/token"
+	"main/server/services/twilio"
+	"main/server/utils"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/twilio/twilio-go"
-	openapi "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
-var twilioClient *twilio.RestClient
-
-func TwilioInit(password string) {
-	twilioClient = twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username: os.Getenv("TWILIO_ACCOUNT_SID"),
-		Password: password,
-	})
-}
-
-func RegisterUserService(context *gin.Context, registerRequest request.UserRequest) {
+func RegisterUserService(ctx *gin.Context, registerRequest context.UserRequest) {
 	// check if user already registered
 	if db.RecordExist("users", "contact", registerRequest.UserContact) {
-		response.ErrorResponse(context, 403, "User already registered , please proceed to login")
+		response.ErrorResponse(ctx, 403, "User already registered , please proceed to login")
 		return
 	}
 
@@ -39,85 +29,59 @@ func RegisterUserService(context *gin.Context, registerRequest request.UserReque
 
 	err := db.CreateRecord(&user)
 	if err != nil {
-		response.ErrorResponse(context, 500, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, err.Error())
 		return
 	}
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"User Registered successfully , please proceed to login",
 		user,
-		context,
+		ctx,
 	)
 }
 
-func UserLoginService(context *gin.Context, userLogin request.UserLogin) {
+func UserLoginService(ctx *gin.Context, userLogin context.UserLogin) {
 	// check that number is registered or not
 	if !db.RecordExist("users", "contact", userLogin.UserContact) {
-		response.ErrorResponse(context, 400, "Number not registered , please register")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Number not registered , please register")
 		return
 	} else {
 		if db.RecordExist("users", "is_active", "false") {
 			// it's an old user who is trying to login
-			ok, sid := SendOtpService(context, "+91"+userLogin.UserContact)
+			ok, sid := twilio.SendOtpService(ctx, "+91"+userLogin.UserContact)
 			if ok {
-				response.ShowResponse("Success", 200, "Welcome back! OTP sent successfully", sid, context)
+				response.ShowResponse("Success", utils.HTTP_OK, "Welcome back! OTP sent successfully", sid, ctx)
 				return
 			} else {
-				response.ErrorResponse(context, 400, "Error sending OTP")
+				response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error sending OTP")
 				return
 			}
 
 		}
 	}
 	// new user logging in
-	ok, sid := SendOtpService(context, "+91"+userLogin.UserContact)
+	ok, sid := twilio.SendOtpService(ctx, "+91"+userLogin.UserContact)
 	if ok {
-		response.ShowResponse("Success", 200, "OTP sent successfully", sid, context)
+		response.ShowResponse("Success", utils.HTTP_OK, "OTP sent successfully", sid, ctx)
 		return
 	} else {
-		response.ErrorResponse(context, 400, "Error sending OTP")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error sending OTP")
 		return
 	}
 }
 
-func SendOtpService(context *gin.Context, contact string) (bool, *string) {
-	params := &openapi.CreateVerificationParams{}
-
-	params.SetTo(contact)
-
-	params.SetChannel("sms")
-
-	resp, err := twilioClient.VerifyV2.CreateVerification(os.Getenv("VERIFY_SERVICE_SID"), params)
-
-	if err != nil {
-		return false, nil
-	} else {
-		return true, resp.Sid
-	}
-}
-
-func VerifyOtpService(context *gin.Context, verifyOtpRequest request.VerifyOtp) {
-	params := &openapi.CreateVerificationCheckParams{}
-
-	params.SetTo("+91" + verifyOtpRequest.UserContact)
-
-	params.SetCode(verifyOtpRequest.Otp)
-
-	resp, err := twilioClient.VerifyV2.CreateVerificationCheck(os.Getenv("VERIFY_SERVICE_SID"), params)
-
-	if err != nil {
-		response.ErrorResponse(context, 401, "Verification Failed")
-		return
-	} else if *resp.Status == "approved" {
+func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
+	veriyStatus, err := twilio.VerifyOtpService(ctx, verifyOtpRequest.UserContact, verifyOtpRequest.Otp)
+	if veriyStatus == "approved" {
 		// user creation
-		var tokenClaims model.Claims
+		var tokenClaims token.Claims
 		var user model.User
 		var userSession model.Session
 		err := db.FindById(&user, verifyOtpRequest.UserContact, "contact")
 
 		if err != nil {
-			response.ErrorResponse(context, 500, "Error finding user in DB")
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding user in DB")
 			return
 		}
 		user.Is_Active = true
@@ -128,66 +92,75 @@ func VerifyOtpService(context *gin.Context, verifyOtpRequest request.VerifyOtp) 
 
 		db.UpdateRecord(&user, user.UserId, "user_id")
 
-		tokenString := provider.GenerateToken(tokenClaims, context)
+		tokenString := token.GenerateToken(tokenClaims, ctx)
 
 		userSession.Token = tokenString
 		userSession.UserId = user.UserId
 
 		err = db.CreateRecord(&userSession)
 		if err != nil {
-			response.ErrorResponse(context, 500, "Error creating record: "+err.Error())
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 			return
 		}
-		response.ShowResponse("Success", 200, "User verified successfully", user, context)
-		response.ShowResponse("Success", 200, "Session created successfully", userSession, context)
+		response.ShowResponse("Success", utils.HTTP_OK, "User verified successfully", user, ctx)
+		response.ShowResponse("Success", utils.HTTP_OK, "Session created successfully", userSession, ctx)
 
-	} else {
-		response.ErrorResponse(context, 401, "Verification Failed")
+	}
+
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Verification Failed")
 		return
 	}
 }
 
-func GetUserByIdService(context *gin.Context, userId string) {
+func GetUserByIdService(context *gin.Context) {
+
+	userId, err := order.UserIdFromToken(context)
+	if err != nil {
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "User Not Found")
+		return
+	}
+
 	if !db.RecordExist("users", "user_id", userId) {
-		response.ErrorResponse(context, 400, "User not found")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "User not found")
 		return
 	}
 
 	var user model.User
-	err := db.FindById(&user, userId, "user_id")
+	err = db.FindById(&user, userId, "user_id")
 
 	if err != nil {
-		response.ErrorResponse(context, 400, "User not found")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "User not found")
 	}
 
-	response.ShowResponse("Success", 200, "User Fetched successfully", user, context)
+	response.ShowResponse("Success", utils.HTTP_OK, "User Fetched successfully", user, context)
 }
 
-func EditUserService(context *gin.Context, editUserRequest request.EditUser) {
+func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 	if !db.RecordExist("users", "user_id", editUserRequest.UserId) {
-		response.ErrorResponse(context, 400, "User not found")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "User not found")
 		return
 	}
 	var user model.User
 	err := db.FindById(&user, editUserRequest.UserId,
 		"user_id")
 	if err != nil {
-		response.ErrorResponse(context, 400, "Error finding user")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding user")
 	}
 
 	user.UserName = editUserRequest.UserName
 	user.Gender = editUserRequest.Gender
 	db.UpdateRecord(&user, editUserRequest.UserId, "user_id")
 
-	response.ShowResponse("Success", 200, "User Profile updated successfully", user, context)
+	response.ShowResponse("Success", utils.HTTP_OK, "User Profile updated successfully", user, ctx)
 }
 
-func LogoutUserService(context *gin.Context, logoutUser request.LogoutUser) {
+func LogoutUserService(ctx *gin.Context, logoutUser context.LogoutUser) {
 	var user model.User
 	err := db.FindById(&user, logoutUser.UserId,
 		"user_id")
 	if err != nil {
-		response.ErrorResponse(context, 400, "Error finding user")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding user")
 		return
 	}
 
@@ -198,29 +171,29 @@ func LogoutUserService(context *gin.Context, logoutUser request.LogoutUser) {
 	var userSession model.Session
 	err = db.FindById(&userSession, logoutUser.UserId, "user_id")
 	if err != nil {
-		response.ErrorResponse(context, 400, "Error finding user session")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding user session")
 		return
 	}
 	err = db.DeleteRecord(&userSession, userSession.
 		UserId, "user_id")
 	if err != nil {
-		response.ErrorResponse(context, 400, "Error deleting user session")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error deleting user session")
 		return
 	}
 
-	response.ShowResponse("Success", 200, "Logout Successfull", user, context)
+	response.ShowResponse("Success", utils.HTTP_OK, "Logout Successfull", user, ctx)
 }
 
-func UserAddressService(context *gin.Context, userAddressRequest model.UserAddresses) {
+func UserAddressService(ctx *gin.Context, userAddressRequest model.UserAddresses) {
 
-	userId, err := order.UserIdFromToken(context)
+	userId, err := order.UserIdFromToken(ctx)
 	if err != nil {
-		response.ErrorResponse(context, 401, "Invalid token")
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
 		return
 	}
 
 	if userId == "" {
-		response.ErrorResponse(context, 400, "No User ID provided")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "No User ID provided")
 		return
 	}
 	var dbConstants model.DbConstant
@@ -238,22 +211,22 @@ func UserAddressService(context *gin.Context, userAddressRequest model.UserAddre
 	userAddressRequest.UserId = userId
 	err = db.CreateRecord(&userAddressRequest)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error creating DB record")
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating DB record")
 		return
 	}
 
-	DBConstantService(context, dbConstants)
+	DBConstantService(ctx, dbConstants)
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"User Address logged Successfully",
 		userAddressRequest,
-		context,
+		ctx,
 	)
 }
 
-func DBConstantService(context *gin.Context, dbConstants model.DbConstant) {
+func DBConstantService(ctx *gin.Context, dbConstants model.DbConstant) {
 	if dbConstants.ConstantShortHand == "DEFAULT" || dbConstants.ConstantShortHand == "HOME" || dbConstants.ConstantShortHand != "WORK" {
 		exists1 := db.RecordExist("db_constants", "constant_short_hand", "DEFAULT")
 		exists2 := db.RecordExist("db_constants", "constant_short_hand", "HOME")
@@ -261,18 +234,18 @@ func DBConstantService(context *gin.Context, dbConstants model.DbConstant) {
 		if !exists1 || !exists2 || !exists3 {
 			err := db.CreateRecord(&dbConstants)
 			if err != nil {
-				response.ErrorResponse(context, 500, "Error creating DB record")
+				response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating DB record")
 				return
 			}
 		}
 	}
 }
 
-func UserAddressRetrieveService(context *gin.Context) {
-	addressType := context.Query("addresstype")
+func UserAddressRetrieveService(ctx *gin.Context) {
+	addressType := ctx.Query("addresstype")
 
 	if addressType == "" {
-		response.ErrorResponse(context, 400, "Address type not specified")
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Address type not specified")
 		return
 	}
 	var userAddress []model.UserAddresses
@@ -280,7 +253,7 @@ func UserAddressRetrieveService(context *gin.Context) {
 		query := "SELECT * FROM user_addresses WHERE address_type='" + addressType + "'"
 		err := db.QueryExecutor(query, &userAddress)
 		if err != nil {
-			response.ErrorResponse(context, 500, "Error finding user address")
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding user address")
 			return
 		}
 	}
@@ -288,7 +261,7 @@ func UserAddressRetrieveService(context *gin.Context) {
 		query := "SELECT * FROM user_addresses WHERE address_type='" + addressType + "'"
 		err := db.QueryExecutor(query, &userAddress)
 		if err != nil {
-			response.ErrorResponse(context, 500, "Error finding user address")
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding user address")
 			return
 		}
 	}
@@ -296,16 +269,16 @@ func UserAddressRetrieveService(context *gin.Context) {
 		query := "SELECT * FROM user_addresses WHERE address_type='" + addressType + "'"
 		err := db.QueryExecutor(query, &userAddress)
 		if err != nil {
-			response.ErrorResponse(context, 500, "Error finding user address")
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding user address")
 			return
 		}
 	}
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"User Address retrieved successfully",
 		userAddress,
-		context,
+		ctx,
 	)
 }

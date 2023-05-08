@@ -5,7 +5,7 @@ import (
 	"log"
 	"main/server"
 	"main/server/db"
-	"main/server/services/user"
+	"main/server/services/twilio"
 
 	"os"
 
@@ -21,7 +21,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	fmt.Println("auth token: ", os.Getenv("TWILIO_AUTH_TOKEN"))
-	user.TwilioInit(os.Getenv("TWILIO_AUTH_TOKEN"))
+	twilio.TwilioInit(os.Getenv("TWILIO_AUTH_TOKEN"))
 
 	connection := db.InitDB()
 	db.Transfer(connection)
