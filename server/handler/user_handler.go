@@ -101,21 +101,7 @@ func EditUserProfile(ctx *gin.Context) {
 func UserLogoutHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
-	var logoutUser context.LogoutUser
-
-	err := utils.RequestDecoding(ctx, &logoutUser)
-	if err != nil {
-		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
-		return
-	}
-
-	err = validation.CheckValidation(&logoutUser)
-	if err != nil {
-		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
-		return
-	}
-
-	user.LogoutUserService(ctx, logoutUser)
+	user.LogoutUserService(ctx)
 
 }
 
