@@ -14,12 +14,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//Generate random OTP
 func GenerateOTP() int {
 	rand.Seed(time.Now().UnixNano())
 	otp := rand.Intn(9999-1111) + 1000
 	return otp
 }
 
+//Send SMS to given number
+//Sets two cookies OTP and NUMBER which contains values in hashed form
 func SendSmsService(ctx *gin.Context, number string) (bool, *string) {
 	otp := GenerateOTP()
 	params := &api.CreateMessageParams{}
@@ -52,6 +55,7 @@ func SendSmsService(ctx *gin.Context, number string) (bool, *string) {
 	}
 }
 
+// Check OTP and number from cookies
 func CheckOtpService(ctx *gin.Context, originalNumber string, numberProvided string, originalOtp string, otpProvided string) (bool, error) {
 
 	err := bcrypt.CompareHashAndPassword([]byte(originalNumber), []byte(numberProvided))

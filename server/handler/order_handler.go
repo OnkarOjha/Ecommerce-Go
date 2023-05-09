@@ -71,3 +71,23 @@ func MakeCartPaymentHandler(ctx *gin.Context) {
 	}
 	order.MakeCartPaymentService(ctx, paymentRequest)
 }
+
+func VendorOrderStatusUpdateHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	var orderUpdateRequest context.VendorOrderStatusUpdate
+
+	err := utils.RequestDecoding(ctx, &orderUpdateRequest)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	err = validation.CheckValidation(&orderUpdateRequest)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	order.VendorOrderStatusUpdateService(ctx, orderUpdateRequest)
+}

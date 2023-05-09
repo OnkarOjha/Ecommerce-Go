@@ -1,4 +1,4 @@
-package vendor
+package vendors
 
 import (
 	"main/server/context"
@@ -15,6 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+//Vendor Register service
 func VendorRegisterService(ctx *gin.Context, vendorRegisterRequest context.VendorRegisterRequest) {
 	// check if user already registered
 	if db.RecordExist("vendors", "vendor_contact", vendorRegisterRequest.CompanyContact) {
@@ -51,6 +52,7 @@ func VendorRegisterService(ctx *gin.Context, vendorRegisterRequest context.Vendo
 	)
 }
 
+//Venor Login service
 func VendorLoginService(ctx *gin.Context, vendorLoginRequest context.VendorLoginRequest) {
 	//check if the gst number is registered with the mobile number
 	if db.BothExists("vendors", "gst_in", vendorLoginRequest.GstNumber, "vendor_contact", vendorLoginRequest.CompanyContact) {
@@ -86,6 +88,7 @@ func VendorLoginService(ctx *gin.Context, vendorLoginRequest context.VendorLogin
 	}
 }
 
+//Vendor OTP Sending service
 func VerifyOtpService(ctx *gin.Context, verifyOtpRequest context.VendorVerifyOtpRequest) {
 	otpCookie, err := ctx.Request.Cookie("otp")
 	if err != nil {
@@ -141,8 +144,9 @@ func VerifyOtpService(ctx *gin.Context, verifyOtpRequest context.VendorVerifyOtp
 
 }
 
+//Vendor logout and session delete
 func VendorLogoutService(ctx *gin.Context) {
-	vendorId, err := order.UserIdFromToken(ctx)
+	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
 		return
@@ -180,8 +184,9 @@ func VendorLogoutService(ctx *gin.Context) {
 	response.ShowResponse("Success", utils.HTTP_OK, "Logout Successfull", vendor, ctx)
 }
 
+//Edit vendor details
 func VendorEditDetailsService(ctx *gin.Context, editDetailsRequest context.VendorEditDetailsRequest) {
-	vendorId, err := order.UserIdFromToken(ctx)
+	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
 		return

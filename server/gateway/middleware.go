@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// User Authentication middleware
 func UserAuthorization(c *gin.Context) {
 
 	tokenString, err := utils.GetTokenFromAuthHeader(c)
@@ -58,6 +59,7 @@ func UserAuthorization(c *gin.Context) {
 
 }
 
+// Vendor Authentication middleware
 func VendorAuthorization(c *gin.Context) {
 
 	tokenString, err := utils.GetTokenFromAuthHeader(c)
@@ -106,6 +108,7 @@ func VendorAuthorization(c *gin.Context) {
 
 }
 
+// CORS middlewware
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

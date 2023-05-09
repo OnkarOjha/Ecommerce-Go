@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//DB model to keep track of search History
 type SearchHistory struct {
 	gorm.Model
 	SearchId        string    `json:"searchId" gorm:"default:uuid_generate_v4()"`
