@@ -2,13 +2,14 @@ package cart
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"main/server/context"
 	"main/server/db"
 	"main/server/model"
 	"main/server/response"
 	"main/server/services/token"
 	"main/server/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Get ID from token
@@ -300,7 +301,7 @@ func RemoveProductService(ctx *gin.Context, removeProductFromCart context.Remove
 	response.ShowResponse("Success", utils.HTTP_OK, "Cart Details after decrement", cart, ctx)
 }
 
-//Show the cart details
+//Show the cart product details
 func GetCartDetailsService(ctx *gin.Context) {
 	userId, err := IdFromToken(ctx)
 	if err != nil {
@@ -308,23 +309,30 @@ func GetCartDetailsService(ctx *gin.Context) {
 		return
 	}
 
-	var cartProductDetails model.CartProducts
+	var cartProductDetails []model.CartProducts
 	err = db.FindById(&cartProductDetails, userId, "user_id")
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "No cart products matching this user id")
 		return
 	}
-	var cartResponse response.CartProductResponse
-	cartResponse.CartId = cartProductDetails.CartId
-	cartResponse.ProductId = cartProductDetails.ProductId
-	cartResponse.ProductCount = cartProductDetails.ProductCount
-	cartResponse.ProductPrice = cartProductDetails.ProductPrice
-	cartResponse.ProductAddedAt = cartProductDetails.CreatedAt
+	var cartResponse []response.CartProductResponse
+
+	for _, product := range cartProductDetails {
+
+		var response response.CartProductResponse
+		response.CartId = product.CartId
+		response.ProductId = product.ProductId
+		response.ProductCount = product.ProductCount
+		response.ProductPrice = product.ProductPrice
+		response.ProductAddedAt = product.CreatedAt
+		cartResponse = append(cartResponse, response)
+
+	}
 
 	response.ShowResponse(
 		"Success",
 		utils.HTTP_OK,
-		"User cart details are shown below",
+		"User cart products details are shown below",
 		cartResponse,
 		ctx,
 	)

@@ -12,6 +12,10 @@ import (
 func ConfigureRoutes(server *Server) {
 	// use cors middleware
 	server.engine.Use(gateway.CORSMiddleware())
+
+	// coupon expiration
+	server.engine.Use(gateway.CouponExpiration)
+
 	// user handlers
 	server.engine.POST("/register", handler.UserRegisterHandler)
 	server.engine.POST("/login", handler.UserLoginHandler)
@@ -38,7 +42,7 @@ func ConfigureRoutes(server *Server) {
 	server.engine.GET("/filter/price", handler.FilterByPriceHandler)
 	server.engine.GET("/filter/brand", handler.FilterByBrandHandler)
 	server.engine.GET("/search-bar", handler.SearchBarHandler)
-	server.engine.GET("/searchbar/history", handler.SearchBarHistoryHandler)
+	server.engine.GET("/search-bar/history", handler.SearchBarHistoryHandler)
 
 	//user address handler
 	server.engine.POST("/user/address", handler.UserAddressHandler)
@@ -56,6 +60,10 @@ func ConfigureRoutes(server *Server) {
 	server.engine.POST("/vendor-product-update", gateway.VendorAuthorization, handler.InventoryProductUpdateHandler)
 	server.engine.POST("/vendor-product-delete", gateway.VendorAuthorization, handler.InventoryProductDeleteHandler)
 	server.engine.POST("/vendor-product-status", gateway.VendorAuthorization, handler.VendorOrderStatusUpdateHandler)
+
+	//coupon codes
+	server.engine.POST("/coupon-add", handler.AddCouponHandler)
+	server.engine.GET("/coupon-get", handler.GetCouponsHandler)
 
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

@@ -25,7 +25,7 @@ func CreateRecord(data interface{}) error {
 // Find DB record by ID
 func FindById(data interface{}, id interface{}, columName string) error {
 	column := columName + "=?"
-	err := db.Where(column, id).Unscoped().First(data).Error
+	err := db.Where(column, id).Find(data).Error
 	if err != nil {
 		return err
 	}

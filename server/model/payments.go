@@ -22,10 +22,11 @@ type Payment struct {
 
 //DB model to represent the relation of which user has placed which order
 type UserPayments struct {
-	UserId    string         `json:"userId"`
-	PaymentId string         `json:"paymentId"`
-	OrderId   string         `json:"orderId"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
+	UserId         string         `json:"userId"`
+	PaymentId      string         `json:"paymentId"`
+	OrderId        string         `json:"orderId"`
+	CouponRedeemed string         `json:"couponRedeemed"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	DeletedAt      gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 }
