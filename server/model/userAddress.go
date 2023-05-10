@@ -7,6 +7,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
+// DB model to handle User Addresses
 type UserAddresses struct {
 	UserId      string `json:"userId"`
 	Name        string `json:"name" validate:"required"`

@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//DB user representation
 type User struct {
 	UserId    string         `json:"userId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
 	UserName  string         `json:"userName"`

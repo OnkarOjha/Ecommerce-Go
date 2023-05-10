@@ -6,6 +6,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+// Vendor Register Request
 type VendorRegisterRequest struct {
 	GstNumber      string `json:"gstNumber"`
 	CompanyName    string `json:"companyName"`
@@ -37,6 +38,7 @@ func (a VendorRegisterRequest) ValidateRegister() error {
 	)
 }
 
+//vendor login request
 type VendorLoginRequest struct {
 	GstNumber      string `json:"gstNumber" validate:"required"`
 	CompanyContact string `json:"companyContact" validate:"required"`
@@ -49,6 +51,7 @@ func (a VendorLoginRequest) ValidateLogin() error {
 	)
 }
 
+// vendor verify otp
 type VendorVerifyOtpRequest struct {
 	ContactNumber string `json:"contactNumber"`
 	Otp           string `json:"otp"`
@@ -61,6 +64,7 @@ func (a VendorVerifyOtpRequest) ValidateOtp() error {
 	)
 }
 
+// vendor edit details
 type VendorEditDetailsRequest struct {
 	GstNumber      string `json:"gstNumber"`
 	CompanyName    string `json:"companyName"`

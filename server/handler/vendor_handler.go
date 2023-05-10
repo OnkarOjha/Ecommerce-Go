@@ -2,8 +2,10 @@ package handler
 
 import (
 	"main/server/context"
+	"main/server/model"
 	"main/server/response"
-	"main/server/services/vendor"
+	"main/server/services/product"
+	"main/server/services/vendors"
 	"main/server/utils"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +28,7 @@ func VendorRegisterHandler(ctx *gin.Context) {
 		return
 	}
 
-	vendor.VendorRegisterService(ctx, vendorRegisterRequest)
+	vendors.VendorRegisterService(ctx, vendorRegisterRequest)
 }
 
 func VendorLoginHandler(ctx *gin.Context) {
@@ -45,7 +47,7 @@ func VendorLoginHandler(ctx *gin.Context) {
 		return
 	}
 
-	vendor.VendorLoginService(ctx, vendorLoginRequest)
+	vendors.VendorLoginService(ctx, vendorLoginRequest)
 }
 
 func VenderVerifyOtpHandler(ctx *gin.Context) {
@@ -65,13 +67,13 @@ func VenderVerifyOtpHandler(ctx *gin.Context) {
 		return
 	}
 
-	vendor.VerifyOtpService(ctx, verifyOtpRequest)
+	vendors.VerifyOtpService(ctx, verifyOtpRequest)
 }
 
 func VendorLogoutHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
-	vendor.VendorLogoutService(ctx)
+	vendors.VendorLogoutService(ctx)
 
 }
 
@@ -92,6 +94,56 @@ func VendorEditDetailsHandler(ctx *gin.Context) {
 		return
 	}
 
-	vendor.VendorEditDetailsService(ctx, editDetailsRequest)
+	vendors.VendorEditDetailsService(ctx, editDetailsRequest)
+
+}
+
+func InventoryProductAddHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	var productInventory model.Products
+
+	err := utils.RequestDecoding(ctx, &productInventory)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	err = productInventory.ValidateProduct()
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	product.InventoryProductAddService(ctx, productInventory)
+
+}
+
+func InventoryProductUpdateHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	var productInventoryEdit model.Products
+
+	err := utils.RequestDecoding(ctx, &productInventoryEdit)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	product.InventoryProductUpdateService(ctx, productInventoryEdit)
+}
+
+func InventoryProductDeleteHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	var productInventoryDelete context.ProductDeleteRequest
+
+	err := utils.RequestDecoding(ctx, &productInventoryDelete)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	product.InventoryProductDeleteService(ctx, productInventoryDelete)
 
 }

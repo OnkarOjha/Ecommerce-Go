@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"main/server/context"
 	"main/server/model"
 	"main/server/response"
 	"main/server/services/user"
 	"main/server/utils"
 	"main/server/validation"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UserRegisterHandler(ctx *gin.Context) {

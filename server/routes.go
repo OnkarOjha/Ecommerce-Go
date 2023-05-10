@@ -10,6 +10,8 @@ import (
 )
 
 func ConfigureRoutes(server *Server) {
+	// use cors middleware
+	server.engine.Use(gateway.CORSMiddleware())
 	// user handlers
 	server.engine.POST("/register", handler.UserRegisterHandler)
 	server.engine.POST("/login", handler.UserLoginHandler)
@@ -26,10 +28,10 @@ func ConfigureRoutes(server *Server) {
 	server.engine.GET("/get-cart-details", gateway.UserAuthorization, handler.GetCartDetailsHandler)
 
 	//payment handler
-	server.engine.POST("/payment", handler.MakePaymentHandler)
-	server.engine.GET("/order-details", handler.GetOrderDetails)
-	server.engine.PUT("/cancel-order", handler.CancelOrderHandler)
-	server.engine.POST("/cart-payment", handler.MakeCartPaymentHandler)
+	server.engine.POST("/payment", gateway.UserAuthorization, handler.MakePaymentHandler)
+	server.engine.GET("/order-details", gateway.UserAuthorization, handler.GetOrderDetails)
+	server.engine.PUT("/cancel-order", gateway.UserAuthorization, handler.CancelOrderHandler)
+	server.engine.POST("/cart-payment", gateway.UserAuthorization, handler.MakeCartPaymentHandler)
 
 	//filter & search handler
 	server.engine.GET("/filter/category", handler.FilterByCategoryHandler)
@@ -42,12 +44,18 @@ func ConfigureRoutes(server *Server) {
 	server.engine.POST("/user/address", handler.UserAddressHandler)
 	server.engine.GET("user/address-get", handler.UserAddressRetrieveHandler)
 
-	//vendor login
+	//vendor login  & logout
 	server.engine.POST("/vendor-register", handler.VendorRegisterHandler)
 	server.engine.POST("/vendor-login", handler.VendorLoginHandler)
 	server.engine.POST("/vendor-verify-otp", handler.VenderVerifyOtpHandler)
 	server.engine.DELETE("/verify-logout", gateway.VendorAuthorization, handler.VendorLogoutHandler)
 	server.engine.POST("/vendor-edit-details", gateway.VendorAuthorization, handler.VendorEditDetailsHandler)
+
+	//vendor product management
+	server.engine.POST("/vendor-product-add", gateway.VendorAuthorization, handler.InventoryProductAddHandler)
+	server.engine.POST("/vendor-product-update", gateway.VendorAuthorization, handler.InventoryProductUpdateHandler)
+	server.engine.POST("/vendor-product-delete", gateway.VendorAuthorization, handler.InventoryProductDeleteHandler)
+	server.engine.POST("/vendor-product-status", gateway.VendorAuthorization, handler.VendorOrderStatusUpdateHandler)
 
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

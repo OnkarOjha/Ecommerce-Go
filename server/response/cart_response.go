@@ -2,6 +2,7 @@ package response
 
 import "time"
 
+// Cart Product Details
 type CartProductResponse struct {
 	CartId         string    `json:"cartId"`
 	ProductId      string    `json:"productId"`

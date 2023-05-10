@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Filter Product by category
 func FilterByCategoryService(context *gin.Context) {
 	category := context.Query("category")
 
@@ -43,7 +44,9 @@ func FilterByCategoryService(context *gin.Context) {
 	)
 }
 
+// Filter Product by service
 func FilterByPriceService(context *gin.Context) {
+	// we will take price range from query parameters
 	priceFrom := context.Query("from")
 	priceTo := context.Query("to")
 
@@ -83,6 +86,7 @@ func FilterByPriceService(context *gin.Context) {
 
 }
 
+// Filter by brand name
 func FilterByBrandService(context *gin.Context) {
 	brandName := context.Query("brand")
 
@@ -115,6 +119,7 @@ func FilterByBrandService(context *gin.Context) {
 
 }
 
+// Search bar queries
 func SearchBarService(context *gin.Context) {
 	productQuery := context.Query("productQuery")
 
@@ -179,6 +184,7 @@ func SearchBarService(context *gin.Context) {
 
 }
 
+// Search helper to search between two price ranges
 func SearchWithPriceRange(context *gin.Context, productNameSearch []model.Products, priceFrom string, priceTo string) {
 
 	priceFromInt, _ := strconv.Atoi(priceFrom)
@@ -219,6 +225,7 @@ func SearchWithPriceRange(context *gin.Context, productNameSearch []model.Produc
 
 }
 
+// Search helper to search from a specific price range
 func SearchWithPriceFromRange(context *gin.Context, productNameSearch []model.Products, priceFrom string) {
 	priceFromInt, _ := strconv.Atoi(priceFrom)
 
@@ -247,6 +254,7 @@ func SearchWithPriceFromRange(context *gin.Context, productNameSearch []model.Pr
 	)
 }
 
+// Search helper to search upto a specific price range
 func SearchWithPriceToRange(context *gin.Context, productNameSearch []model.Products, priceTo string) {
 	priceToInt, _ := strconv.Atoi(priceTo)
 
@@ -277,6 +285,7 @@ func SearchWithPriceToRange(context *gin.Context, productNameSearch []model.Prod
 
 var frequency int
 
+//update the search history table
 func SearchHistoryUpdate(context *gin.Context, productNameSearch []model.Products, productQuery string, priceFrom string, priceTo string, currentTime time.Time) {
 	var searchHistoryUpdate []model.SearchHistory
 
@@ -293,7 +302,7 @@ func SearchHistoryUpdate(context *gin.Context, productNameSearch []model.Product
 
 	}
 
-	// //search history clear before next update
+	//search history clear before next update
 	db.SearchHistoryClear()
 	err := db.CreateRecord(&searchHistoryUpdate)
 	if err != nil {
@@ -302,6 +311,7 @@ func SearchHistoryUpdate(context *gin.Context, productNameSearch []model.Product
 	}
 }
 
+// to show search bar history currently in the search history DB
 func SearchBarHistoryService(context *gin.Context) {
 	var searchBarHistoryLoader []model.SearchHistory
 	query := "SELECT DISTINCT search_frequency, search_time ,search_query FROM search_histories ORDER BY search_time ASC LIMIT 5;"

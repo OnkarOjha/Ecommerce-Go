@@ -2,21 +2,21 @@ package order
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/paymentintent"
-	"github.com/stripe/stripe-go/v72/paymentmethod"
 	"main/server/context"
 	"main/server/db"
 	"main/server/model"
 	"main/server/response"
+	"main/server/services/stripeservice"
 	"main/server/services/token"
 	"main/server/utils"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-func UserIdFromToken(ctx *gin.Context) (string, error) {
+// Get ID from token
+func IdFromToken(ctx *gin.Context) (string, error) {
 	tokenString, err := utils.GetTokenFromAuthHeader(ctx)
 	if err != nil {
 
@@ -30,81 +30,9 @@ func UserIdFromToken(ctx *gin.Context) (string, error) {
 	return claims.UserId, nil
 }
 
-func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear string, cvc string, ctx *gin.Context) (pi, pi1 *stripe.PaymentIntent) {
-	//TODO
-	stripe.Key = "sk_test_51MvCYxSGxKXiPagaKdfa8MM2nYhjysJ41IUESqCLjca0meSTlzal4wbqMFZDbpTa5w1YXvdwygU8yMYbBecfgLCC00Yrx2WfFF"
-
-	pm, err := paymentmethod.New(&stripe.PaymentMethodParams{
-		Type: stripe.String("card"),
-		Card: &stripe.PaymentMethodCardParams{
-			Number:   stripe.String(cardNumber),
-			ExpMonth: stripe.String(expMonth),
-			ExpYear:  stripe.String(expYear),
-			CVC:      stripe.String(cvc),
-		},
-	})
-	if err != nil {
-		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error creating card details")
-		return
-	}
-
-	params := &stripe.PaymentIntentParams{
-		Amount:             stripe.Int64(int64(OrderPrice) * 100),
-		Currency:           stripe.String("inr"),
-		Description:        stripe.String("Payment"),
-		PaymentMethod:      stripe.String(pm.ID),
-		ConfirmationMethod: stripe.String(string(stripe.PaymentIntentConfirmationMethodAutomatic)),
-	}
-	pi, err = paymentintent.New(params)
-	if err != nil {
-		response.ErrorResponse(ctx, 503, "Error processing payment")
-		return
-	}
-
-	params1 := &stripe.PaymentIntentConfirmParams{
-		PaymentMethod: stripe.String("pm_card_visa"),
-		CaptureMethod: stripe.String(string(stripe.PaymentIntentConfirmationMethodAutomatic)),
-	}
-
-	pi1, err = paymentintent.Confirm(pi.ID, params1)
-	if err != nil {
-		response.ErrorResponse(ctx, 503, "Error confirming payment")
-		return
-	}
-
-	switch pi1.Status {
-	case "succeeded":
-		response.ShowResponse("Success", utils.HTTP_OK, "Payment processed Successfully", "", ctx)
-		return
-	case "requires_payment_method":
-		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Requires Payment Method")
-		return
-	case "requires_action":
-
-		if pi1.Status == "requires_action" && pi1.NextAction != nil {
-			switch pi1.NextAction.Type {
-			case "use_stripe_sdk":
-
-				response.ShowResponse(
-					"Success",
-					utils.HTTP_OK,
-					"Payment processed Successfully , Here is your client secret",
-					pi1.ClientSecret,
-					ctx,
-				)
-			}
-		}
-	default:
-		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Payment requires more actions")
-		return
-	}
-
-	return pi, pi1
-
-}
-
+// Make Payment for a specific product Service
 func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Error decoding token or invalid token")
 		return
@@ -135,7 +63,9 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "This cart don't have any such product")
 		return
 	}
-	pi, pi1 := StripePayment(int64(cartProduct.ProductPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
+
+	// stripe payment api call
+	pi, pi1 := stripeservice.StripePayment(int64(cartProduct.ProductPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
 	fmt.Println("pi", pi.Status)
 	fmt.Println("pi1", pi1)
 
@@ -161,7 +91,7 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 	order.UserId = userId
 	order.OrderQuantity = cartProduct.ProductCount
 	order.OrderStatus = "CONFIRMED"
-	order.OrderDate = time.Now().Format("utils.HTTP_OK 6-January-02")
+	order.OrderDate = time.Now().Format("2006-January-02")
 	address, err := AlotAddressForConfirmedOrders(ctx, userId, addressType)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
@@ -185,6 +115,19 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		return
 	}
 
+	// make order request
+	var orderRequest model.OrderRequest
+	orderRequest.OrderId = order.OrderId
+	orderRequest.UserId = userId
+	orderRequest.OrderStatus = "DISPATCHED"
+	if !db.RecordExist("db_constants", "constant_name", "dispatched") {
+		var dbconstant model.DbConstant
+		dbconstant.ConstantName = "dispatched"
+		dbconstant.ConstantShortHand = "DISPATCHED"
+		db.CreateRecord(&dbconstant)
+	}
+	db.CreateRecord(&orderRequest)
+
 	//product details
 	var productDetails model.Products
 	err = db.FindById(&productDetails, paymentRequest.ProductId, "product_id")
@@ -192,6 +135,12 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving cart Details with given cart_id")
 		return
 	}
+
+	//inventory update
+	var inventory model.Products
+	db.FindById(&inventory, paymentRequest.ProductId, "product_id")
+	inventory.ProductInventory--
+	db.UpdateRecord(&inventory, paymentRequest.ProductId, "product_id")
 
 	orderCompleteData := &response.OrderCompletionResponse{
 		OrderId:         payment.OrderId,
@@ -216,8 +165,9 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 
 }
 
+//Get Order Details that already has payment done
 func GetOrderDetails(ctx *gin.Context) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Error decoding token or invalid token")
 		return
@@ -268,6 +218,7 @@ func GetOrderDetails(ctx *gin.Context) {
 
 }
 
+//Alot address according to params passed
 func AlotAddressForConfirmedOrders(ctx *gin.Context, userId string, addressType string) (string, error) {
 	var userDefaultAddress model.UserAddresses
 	query := "SELECT * FROM user_addresses WHERE user_id='" + userId + "' AND address_type='" + addressType + "'"
@@ -282,6 +233,7 @@ func AlotAddressForConfirmedOrders(ctx *gin.Context, userId string, addressType 
 	return address, nil
 }
 
+//Cancel Order and Refund
 func CancelOrderService(ctx *gin.Context, cancelOrderRequest context.CancelOrderRequest) {
 
 	var order model.Order
@@ -315,8 +267,9 @@ func CancelOrderService(ctx *gin.Context, cancelOrderRequest context.CancelOrder
 	db.Delete(&userPayment, payment.PaymentId, "payment_id")
 }
 
+//Make Cart Payment
 func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRequest) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Error decoding token or invalid token")
 		return
@@ -329,23 +282,24 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 	}
 
 	var cartProduct model.Cart
-	// if db.RecordExist("cart_products", "cart_id", paymentRequest.CartId) {
-	// 	response.ErrorResponse(context, utils.HTTP_BAD_REQUEST , "Order with the same cart id")
-	// 	return
-	// }
-	fmt.Println("fkjfj", paymentRequest)
+	if db.RecordExist("cart_products", "cart_id", paymentRequest.CartId) {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Order with the same cart id")
+		return
+	}
+
 	err = db.FindById(&cartProduct, paymentRequest.CartId, "cart_id")
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error retrieving cart Details with given cart_id")
 		return
 	}
 
-	pi, pi1 := StripePayment(int64(cartProduct.TotalPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
+	// stripe payment api call
+	pi, pi1 := stripeservice.StripePayment(int64(cartProduct.TotalPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
 	fmt.Println("pi", pi.Status)
 	fmt.Println("pi1", pi1)
 
-	var payment model.Payment
 	//create payment
+	var payment model.Payment
 	payment.PaymentId = pi1.ID
 	payment.UserId = userId
 	payment.PaymentAmount = cartProduct.TotalPrice
@@ -389,6 +343,20 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 		return
 	}
 
+	// inventory update
+	var inventory model.Products
+	var cartProducts []model.CartProducts
+	var productIds []string
+	db.FindById(&cartProducts, paymentRequest.CartId, "cart_id")
+	for _, product := range cartProducts {
+		productIds = append(productIds, product.ProductId)
+	}
+	for _, productId := range productIds {
+		db.FindById(&inventory, productId, "product_id")
+		inventory.ProductInventory--
+		db.UpdateRecord(&inventory, productId, "product_id")
+	}
+
 	orderCompleteData := &response.CartOrderCompletionResponse{
 		OrderId:       payment.OrderId,
 		UserId:        userId,
@@ -403,6 +371,29 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 		utils.HTTP_OK,
 		"Congratulations your order has been created successfully",
 		orderCompleteData,
+		ctx,
+	)
+
+}
+
+//Vendor Order Status Set
+func VendorOrderStatusUpdateService(ctx *gin.Context, orderUpdateRequest context.VendorOrderStatusUpdate) {
+
+	if !db.RecordExist("order_request", "order_id", orderUpdateRequest.OrderId) {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Order does not exist")
+		return
+	}
+	var orderRequest model.OrderRequest
+
+	db.FindById(&orderRequest, orderUpdateRequest.OrderId, "order_id")
+	orderRequest.OrderStatus = "DELIVERED"
+	db.UpdateRecord(&orderRequest, orderUpdateRequest.OrderId, "order_id")
+
+	response.ShowResponse(
+		"Success",
+		utils.HTTP_OK,
+		"Order Status updated",
+		orderRequest,
 		ctx,
 	)
 

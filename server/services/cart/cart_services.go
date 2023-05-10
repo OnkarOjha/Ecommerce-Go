@@ -11,7 +11,8 @@ import (
 	"main/server/utils"
 )
 
-func UserIdFromToken(ctx *gin.Context) (string, error) {
+// Get ID from token
+func IdFromToken(ctx *gin.Context) (string, error) {
 	tokenString, err := utils.GetTokenFromAuthHeader(ctx)
 	if err != nil {
 		response.ErrorResponse(
@@ -29,8 +30,9 @@ func UserIdFromToken(ctx *gin.Context) (string, error) {
 	return claims.UserId, nil
 }
 
+// Service to add Product to cart
 func AddToCartService(ctx *gin.Context, addToCartRequest context.AddToCartRequest) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error in Token header , no userId found")
 		return
@@ -74,7 +76,7 @@ func AddToCartService(ctx *gin.Context, addToCartRequest context.AddToCartReques
 		return
 	}
 
-	// cart table
+	// update cart table
 	cart.CartId = cartProduct.CartId
 	cart.UserId = userId
 	cart.CartCount = cart.CartCount + 1
@@ -116,8 +118,9 @@ func AddToCartService(ctx *gin.Context, addToCartRequest context.AddToCartReques
 	)
 }
 
+// Add product to cart
 func AddProductService(ctx *gin.Context, addProductCountRequest context.AddToCartRequest) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error in Token header , no userId found")
 		return
@@ -178,8 +181,9 @@ func AddProductService(ctx *gin.Context, addProductCountRequest context.AddToCar
 	}
 }
 
+//Remove all cart service
 func RemoveFromCartService(ctx *gin.Context, removeFromCartRequest context.RemoveFromCart) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error in Token header , no userId found")
 		return
@@ -225,6 +229,7 @@ func RemoveFromCartService(ctx *gin.Context, removeFromCartRequest context.Remov
 	response.ShowResponse("Success", utils.HTTP_OK, "Cart Details", cart, ctx)
 }
 
+// Remove product from cart
 func RemoveProductService(ctx *gin.Context, removeProductFromCart context.RemoveProduct) {
 	if !db.RecordExist("cart_products", "cart_id", removeProductFromCart.CartId) {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Cart Id not found")
@@ -295,8 +300,9 @@ func RemoveProductService(ctx *gin.Context, removeProductFromCart context.Remove
 	response.ShowResponse("Success", utils.HTTP_OK, "Cart Details after decrement", cart, ctx)
 }
 
+//Show the cart details
 func GetCartDetailsService(ctx *gin.Context) {
-	userId, err := UserIdFromToken(ctx)
+	userId, err := IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error in Token header , no userId found")
 		return
@@ -308,9 +314,7 @@ func GetCartDetailsService(ctx *gin.Context) {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "No cart products matching this user id")
 		return
 	}
-
 	var cartResponse response.CartProductResponse
-
 	cartResponse.CartId = cartProductDetails.CartId
 	cartResponse.ProductId = cartProductDetails.ProductId
 	cartResponse.ProductCount = cartProductDetails.ProductCount

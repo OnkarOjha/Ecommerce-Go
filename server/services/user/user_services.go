@@ -16,6 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+//Register User Service
 func RegisterUserService(ctx *gin.Context, registerRequest context.UserRequest) {
 	// check if user already registered
 	if db.RecordExist("users", "contact", registerRequest.UserContact) {
@@ -42,6 +43,7 @@ func RegisterUserService(ctx *gin.Context, registerRequest context.UserRequest) 
 	)
 }
 
+//User Login Service
 func UserLoginService(ctx *gin.Context, userLogin context.UserLogin) {
 	// check that number is registered or not
 	if !db.RecordExist("users", "contact", userLogin.UserContact) {
@@ -61,6 +63,7 @@ func UserLoginService(ctx *gin.Context, userLogin context.UserLogin) {
 
 		}
 	}
+
 	// new user logging in
 	ok, sid := twilio.SendOtpService(ctx, "+91"+userLogin.UserContact)
 	if ok {
@@ -72,6 +75,7 @@ func UserLoginService(ctx *gin.Context, userLogin context.UserLogin) {
 	}
 }
 
+//User Verify Service with OTP and user signin
 func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 	veriyStatus, err := twilio.VerifyOtpService(ctx, verifyOtpRequest.UserContact, verifyOtpRequest.Otp)
 	if veriyStatus == "approved" {
@@ -114,9 +118,10 @@ func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 	}
 }
 
+//User Get service
 func GetUserByIdService(context *gin.Context) {
 
-	userId, err := order.UserIdFromToken(context)
+	userId, err := order.IdFromToken(context)
 	if err != nil {
 		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "User Not Found")
 		return
@@ -137,6 +142,7 @@ func GetUserByIdService(context *gin.Context) {
 	response.ShowResponse("Success", utils.HTTP_OK, "User Fetched successfully", user, context)
 }
 
+//Edit User Details
 func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 	if !db.RecordExist("users", "user_id", editUserRequest.UserId) {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "User not found")
@@ -156,8 +162,9 @@ func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 	response.ShowResponse("Success", utils.HTTP_OK, "User Profile updated successfully", user, ctx)
 }
 
+//User logout Service
 func LogoutUserService(ctx *gin.Context) {
-	userId, err := order.UserIdFromToken(ctx)
+	userId, err := order.IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
 		return
@@ -195,9 +202,10 @@ func LogoutUserService(ctx *gin.Context) {
 	response.ShowResponse("Success", utils.HTTP_OK, "Logout Successfull", user, ctx)
 }
 
+//User Address Set DEFAULT , HOME , WORK
 func UserAddressService(ctx *gin.Context, userAddressRequest model.UserAddresses) {
 
-	userId, err := order.UserIdFromToken(ctx)
+	userId, err := order.IdFromToken(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
 		return
@@ -237,6 +245,7 @@ func UserAddressService(ctx *gin.Context, userAddressRequest model.UserAddresses
 	)
 }
 
+//db constant set service
 func DBConstantService(ctx *gin.Context, dbConstants model.DbConstant) {
 	if dbConstants.ConstantShortHand == "DEFAULT" || dbConstants.ConstantShortHand == "HOME" || dbConstants.ConstantShortHand != "WORK" {
 		exists1 := db.RecordExist("db_constants", "constant_short_hand", "DEFAULT")
@@ -252,6 +261,7 @@ func DBConstantService(ctx *gin.Context, dbConstants model.DbConstant) {
 	}
 }
 
+//user address retrieve
 func UserAddressRetrieveService(ctx *gin.Context) {
 	addressType := ctx.Query("addresstype")
 
