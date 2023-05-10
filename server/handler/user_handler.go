@@ -1,162 +1,147 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
+	"main/server/context"
 	"main/server/model"
-	"main/server/request"
 	"main/server/response"
 	"main/server/services/user"
 	"main/server/utils"
 	"main/server/validation"
-
-	"github.com/gin-gonic/gin"
 )
 
-func UserRegisterHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func UserRegisterHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var registerRequest request.UserRequest
+	var registerRequest context.UserRequest
 
-	utils.RequestDecoding(context, &registerRequest)
+	utils.RequestDecoding(ctx, &registerRequest)
 
 	err := validation.CheckValidation(&registerRequest)
 
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	user.RegisterUserService(context, registerRequest)
+	user.RegisterUserService(ctx, registerRequest)
 
 }
 
-func UserLoginHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func UserLoginHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var userLogin request.UserLogin
+	var userLogin context.UserLogin
 
-	err := utils.RequestDecoding(context, &userLogin)
+	err := utils.RequestDecoding(ctx, &userLogin)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&userLogin)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	user.UserLoginService(context, userLogin)
+	user.UserLoginService(ctx, userLogin)
 }
 
-func UserVerifyOtpHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func UserVerifyOtpHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var verifyOtpRequest request.VerifyOtp
+	var verifyOtpRequest context.VerifyOtp
 
-	err := utils.RequestDecoding(context, &verifyOtpRequest)
+	err := utils.RequestDecoding(ctx, &verifyOtpRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&verifyOtpRequest)
 
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	user.VerifyOtpService(context, verifyOtpRequest)
+	user.UserVerifyService(ctx, verifyOtpRequest)
 }
 
-func GetUserByIdHandler(context *gin.Context) {
+func GetUserByIdHandler(ctx *gin.Context) {
 
-	utils.SetHeader(context)
+	utils.SetHeader(ctx)
 
-	var getUser request.GetUser
-
-	err := utils.RequestDecoding(context, &getUser)
-	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
-		return
-	}
-
-	err = validation.CheckValidation(&getUser)
-	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
-		return
-	}
-
-	user.GetUserByIdService(context, getUser.UserId)
+	user.GetUserByIdService(ctx)
 
 }
 
-func EditUserProfile(context *gin.Context) {
-	utils.SetHeader(context)
+func EditUserProfile(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var editUserRequest request.EditUser
+	var editUserRequest context.EditUser
 
-	err := utils.RequestDecoding(context, &editUserRequest)
+	err := utils.RequestDecoding(ctx, &editUserRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&editUserRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	user.EditUserService(context, editUserRequest)
+	user.EditUserService(ctx, editUserRequest)
 
 }
 
-func UserLogoutHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func UserLogoutHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var logoutUser request.LogoutUser
+	var logoutUser context.LogoutUser
 
-	err := utils.RequestDecoding(context, &logoutUser)
+	err := utils.RequestDecoding(ctx, &logoutUser)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&logoutUser)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	user.LogoutUserService(context, logoutUser)
+	user.LogoutUserService(ctx, logoutUser)
 
 }
 
-func UserAddressHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func UserAddressHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
 	var userAddress model.UserAddresses
 
-	err := utils.RequestDecoding(context, &userAddress)
+	err := utils.RequestDecoding(ctx, &userAddress)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = userAddress.Validate()
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	user.UserAddressService(context, userAddress)
+	user.UserAddressService(ctx, userAddress)
 
 }
 
-func UserAddressRetrieveHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func UserAddressRetrieveHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	user.UserAddressRetrieveService(context)
+	user.UserAddressRetrieveService(ctx)
 }

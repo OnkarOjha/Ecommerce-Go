@@ -7,33 +7,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func FilterByCategoryHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func FilterByCategoryHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	filter.FilterByCategoryService(context)
+	filter.FilterByCategoryService(ctx)
 
 }
 
-func FilterByPriceHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func FilterByPriceHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	filter.FilterByPriceService(context)
+	filter.FilterByPriceService(ctx)
 }
 
-func FilterByBrandHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func FilterByBrandHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	filter.FilterByBrandService(context)
+	filter.FilterByBrandService(ctx)
 }
 
-func SearchBarHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func SearchBarHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	filter.SearchBarService(context)
+	filter.SearchBarService(ctx)
 }
 
-func SearchBarHistoryHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func SearchBarHistoryHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	filter.SearchBarHistoryService(context)
+	filter.SearchBarHistoryService(ctx)
 }

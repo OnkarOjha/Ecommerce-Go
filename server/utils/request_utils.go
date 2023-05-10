@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Decoding the request body
 func RequestDecoding(context *gin.Context, data interface{}) error {
 
 	reqBody, err := ioutil.ReadAll(context.Request.Body)
@@ -20,6 +21,7 @@ func RequestDecoding(context *gin.Context, data interface{}) error {
 	return nil
 }
 
+// Set Header for content
 func SetHeader(context *gin.Context) {
 	context.Writer.Header().Set("Content-Type", "application/json")
 

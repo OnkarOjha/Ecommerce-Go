@@ -1,4 +1,4 @@
-package request
+package context
 
 type AddToCartRequest struct {
 	ProductId    string  `json:"productId" validate:"required" message:"ProductId "`

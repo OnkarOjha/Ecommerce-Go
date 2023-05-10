@@ -4,6 +4,7 @@ import (
 	"main/server/db"
 	"main/server/model"
 	"main/server/response"
+	"main/server/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -15,12 +16,12 @@ func FilterByCategoryService(context *gin.Context) {
 	category := context.Query("category")
 
 	if category == "" {
-		response.ErrorResponse(context, 400, "No product Category specified")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "No product Category specified")
 		return
 	}
 
 	if !db.RecordExist("products", "product_category", category) {
-		response.ErrorResponse(context, 400, "Product Category does not exist")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Product Category does not exist")
 		return
 	}
 
@@ -29,13 +30,13 @@ func FilterByCategoryService(context *gin.Context) {
 	query := "SELECT * FROM products where product_category='" + strings.ToLower(category) + "' ORDER BY product_price DESC LIMIT 30"
 	err := db.QueryExecutor(query, &productByCategory)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error Finding in DB")
+		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
 		return
 	}
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Here are the list of products according to the given category",
 		productByCategory,
 		context,
@@ -47,7 +48,7 @@ func FilterByPriceService(context *gin.Context) {
 	priceTo := context.Query("to")
 
 	if priceFrom == "" || priceTo == "" {
-		response.ErrorResponse(context, 400, "No product Price specified")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "No product Price specified")
 		return
 	}
 
@@ -55,11 +56,11 @@ func FilterByPriceService(context *gin.Context) {
 	priceToInt, _ := strconv.Atoi(priceTo)
 
 	if priceFromInt < 0 {
-		response.ErrorResponse(context, 400, "Starting Price must be greater than zero")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Starting Price must be greater than zero")
 		return
 	}
 	if priceToInt < 0 {
-		response.ErrorResponse(context, 400, "Starting Price must be greater than zero")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Starting Price must be greater than zero")
 		return
 	}
 
@@ -68,13 +69,13 @@ func FilterByPriceService(context *gin.Context) {
 	query := "select * from products where product_price BETWEEN " + priceFrom + " AND " + priceTo + " ORDER BY product_price ASC LIMIT 30;"
 	err := db.QueryExecutor(query, &productByPrice)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error Finding in DB")
+		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
 		return
 	}
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Here are the list of products according to the given price range",
 		productByPrice,
 		context,
@@ -86,12 +87,12 @@ func FilterByBrandService(context *gin.Context) {
 	brandName := context.Query("brand")
 
 	if brandName == "" {
-		response.ErrorResponse(context, 400, "No brand name specified")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "No brand name specified")
 		return
 	}
 
 	if !db.RecordExist("products", "product_brand", brandName) {
-		response.ErrorResponse(context, 400, "Product brand does not exist")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Product brand does not exist")
 		return
 	}
 
@@ -100,13 +101,13 @@ func FilterByBrandService(context *gin.Context) {
 	query := "SELECT * FROM products where product_category='" + strings.ToLower(brandName) + "' ORDER BY product_price DESC LIMIT 30"
 	err := db.QueryExecutor(query, &productByBrand)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error Finding in DB")
+		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
 		return
 	}
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Here are the list of products according to the given category",
 		productByBrand,
 		context,
@@ -125,7 +126,7 @@ func SearchBarService(context *gin.Context) {
 
 	err := db.QueryExecutor(boolQuery, &productNameSearchExists)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error Finding in DB")
+		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
 		return
 	}
 
@@ -134,7 +135,7 @@ func SearchBarService(context *gin.Context) {
 
 		err := db.QueryExecutor(productNameSearchQuery, &productNameSearch)
 		if err != nil {
-			response.ErrorResponse(context, 500, "Error Finding in DB")
+			response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
 			return
 		}
 
@@ -163,7 +164,7 @@ func SearchBarService(context *gin.Context) {
 
 		response.ShowResponse(
 			"Success",
-			200,
+			utils.HTTP_OK,
 			"The List of products are",
 			productNameSearch,
 			context,
@@ -172,7 +173,7 @@ func SearchBarService(context *gin.Context) {
 		SearchHistoryUpdate(context, productNameSearch, productQuery, priceFrom, priceTo, currentTime)
 
 	} else {
-		response.ErrorResponse(context, 400, "Product with this name doesn't exist")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Product with this name doesn't exist")
 		return
 	}
 
@@ -184,11 +185,11 @@ func SearchWithPriceRange(context *gin.Context, productNameSearch []model.Produc
 	priceToInt, _ := strconv.Atoi(priceTo)
 
 	if priceFromInt < 0 {
-		response.ErrorResponse(context, 400, "Starting Price must be greater than zero")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Starting Price must be greater than zero")
 		return
 	}
 	if priceToInt < 0 {
-		response.ErrorResponse(context, 400, "Starting Price must be greater than zero")
+		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Starting Price must be greater than zero")
 		return
 	}
 
@@ -202,7 +203,7 @@ func SearchWithPriceRange(context *gin.Context, productNameSearch []model.Produc
 	if productByPrice == nil {
 		response.ShowResponse(
 			"Success",
-			200,
+			utils.HTTP_OK,
 			"The List of products are",
 			productNameSearch,
 			context,
@@ -210,7 +211,7 @@ func SearchWithPriceRange(context *gin.Context, productNameSearch []model.Produc
 	}
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Here are the list of products according to the given price range",
 		productByPrice,
 		context,
@@ -231,7 +232,7 @@ func SearchWithPriceFromRange(context *gin.Context, productNameSearch []model.Pr
 	if productByPrice == nil {
 		response.ShowResponse(
 			"Success",
-			200,
+			utils.HTTP_OK,
 			"The List of products are",
 			productNameSearch,
 			context,
@@ -239,7 +240,7 @@ func SearchWithPriceFromRange(context *gin.Context, productNameSearch []model.Pr
 	}
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"List of products according from the price specified",
 		productByPrice,
 		context,
@@ -259,7 +260,7 @@ func SearchWithPriceToRange(context *gin.Context, productNameSearch []model.Prod
 	if productByPrice == nil {
 		response.ShowResponse(
 			"Success",
-			200,
+			utils.HTTP_OK,
 			"The List of products are",
 			productNameSearch,
 			context,
@@ -267,7 +268,7 @@ func SearchWithPriceToRange(context *gin.Context, productNameSearch []model.Prod
 	}
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"List of products according under the price specified",
 		productByPrice,
 		context,
@@ -296,7 +297,7 @@ func SearchHistoryUpdate(context *gin.Context, productNameSearch []model.Product
 	db.SearchHistoryClear()
 	err := db.CreateRecord(&searchHistoryUpdate)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error Creating Record")
+		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Creating Record")
 		return
 	}
 }
@@ -307,7 +308,7 @@ func SearchBarHistoryService(context *gin.Context) {
 
 	err := db.QueryExecutor(query, &searchBarHistoryLoader)
 	if err != nil {
-		response.ErrorResponse(context, 500, "Error Finding in DB")
+		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
 		return
 	}
 
@@ -320,7 +321,7 @@ func SearchBarHistoryService(context *gin.Context) {
 
 	response.ShowResponse(
 		"Success",
-		200,
+		utils.HTTP_OK,
 		"Here are the list of search history",
 		searchQueryResponse,
 		context,

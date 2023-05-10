@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"main/server/request"
+	"main/server/context"
 	"main/server/response"
 	"main/server/services/cart"
 	"main/server/utils"
@@ -10,90 +10,90 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AddToCartHandler(context *gin.Context) {
+func AddToCartHandler(ctx *gin.Context) {
 
-	utils.SetHeader(context)
-	var addToCartRequest request.AddToCartRequest
+	utils.SetHeader(ctx)
+	var addToCartRequest context.AddToCartRequest
 
-	err := utils.RequestDecoding(context, &addToCartRequest)
+	err := utils.RequestDecoding(ctx, &addToCartRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&addToCartRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	cart.AddToCartService(context, addToCartRequest)
+	cart.AddToCartService(ctx, addToCartRequest)
 
 }
 
-func AddProductHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func AddProductHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var addToCartRequest request.AddToCartRequest
+	var addToCartRequest context.AddToCartRequest
 
-	err := utils.RequestDecoding(context, &addToCartRequest)
+	err := utils.RequestDecoding(ctx, &addToCartRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&addToCartRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	cart.AddProductService(context, addToCartRequest)
+	cart.AddProductService(ctx, addToCartRequest)
 
 }
 
-func RemoveFromCartHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func RemoveFromCartHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var removeFromCartRequest request.RemoveFromCart
+	var removeFromCartRequest context.RemoveFromCart
 
-	err := utils.RequestDecoding(context, &removeFromCartRequest)
+	err := utils.RequestDecoding(ctx, &removeFromCartRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&removeFromCartRequest)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	cart.RemoveFromCartService(context, removeFromCartRequest)
+	cart.RemoveFromCartService(ctx, removeFromCartRequest)
 }
 
-func RemoveProductHandler(context *gin.Context) {
-	utils.SetHeader(context)
+func RemoveProductHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
 
-	var removeProductFromCart request.RemoveProduct
+	var removeProductFromCart context.RemoveProduct
 
-	err := utils.RequestDecoding(context, &removeProductFromCart)
+	err := utils.RequestDecoding(ctx, &removeProductFromCart)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
 	err = validation.CheckValidation(&removeProductFromCart)
 	if err != nil {
-		response.ErrorResponse(context, 400, err.Error())
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
 	}
 
-	cart.RemoveProductService(context, removeProductFromCart)
+	cart.RemoveProductService(ctx, removeProductFromCart)
 
 }
 
-func GetCartDetailsHandler(context *gin.Context) {
-	utils.SetHeader(context)
-	cart.GetCartDetailsService(context)
+func GetCartDetailsHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+	cart.GetCartDetailsService(ctx)
 }
