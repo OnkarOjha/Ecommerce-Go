@@ -12,9 +12,6 @@ import (
 
 func UserAuthorization(c *gin.Context) {
 
-	// 1. user id exists in session table
-	// 2. token associated with userId is same or not
-	// 3. token validity
 	tokenString, err := utils.GetTokenFromAuthHeader(c)
 	if err != nil {
 		response.ErrorResponse(
@@ -30,6 +27,11 @@ func UserAuthorization(c *gin.Context) {
 			c, utils.HTTP_UNAUTHORIZED, "Error :"+err.Error(),
 		)
 		c.Abort()
+		return
+	}
+
+	if claims.Role != "customer" {
+		response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, "Token doesnot belong to a customer")
 		return
 	}
 
@@ -56,38 +58,51 @@ func UserAuthorization(c *gin.Context) {
 
 }
 
-func AdminAuthorization(c *gin.Context) {
+func VendorAuthorization(c *gin.Context) {
 
-	// fmt.Println("inside middleware")
-	// token, err := c.Request.Cookie("cookie")
-	// if err != nil {
+	tokenString, err := utils.GetTokenFromAuthHeader(c)
+	if err != nil {
+		response.ErrorResponse(
+			c, utils.HTTP_UNAUTHORIZED, "Error fetching token",
+		)
+		c.Abort()
+		return
 
-	// 	response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, err.Error())
-	// 	c.Abort()
-	// 	return
+	}
+	claims, err := token.DecodeToken(c, tokenString)
+	if err != nil {
+		response.ErrorResponse(
+			c, utils.HTTP_UNAUTHORIZED, "Error :"+err.Error(),
+		)
+		c.Abort()
+		return
+	}
 
-	// }
+	if claims.Role != "vendor" {
+		response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, "Token doesnot belong to a vendor")
+		return
+	}
 
-	// claims, err := DecodeToken(token.Value)
-	// if err != nil {
-	// 	response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, err.Error())
-	// 	c.Abort()
-	// 	return
-	// }
-	// err = claims.Valid()
-	// if err != nil {
-	// 	response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, err.Error())
-	// 	c.Abort()
-	// 	return
-	// }
-	// if claims.Role == "admin" {
-	// 	c.Next()
-	// } else {
-	// 	response.ErrorResponse(c, 403, "Access Denied")
-	// 	c.Abort()
-	// 	return
+	var userSession model.Session
+	err = db.FindById(&userSession, claims.UserId, "user_id")
+	if err != nil {
+		response.ErrorResponse(
+			c, utils.HTTP_UNAUTHORIZED, "User Id retrieved through token does not exist",
+		)
+		c.Abort()
+		return
+	}
 
-	// }
+	err = db.FindById(&userSession, tokenString, "token")
+	if err != nil {
+		response.ErrorResponse(
+			c, utils.HTTP_UNAUTHORIZED, "Token does not match any session",
+		)
+		c.Abort()
+		return
+	}
+
+	c.Next()
 
 }
 

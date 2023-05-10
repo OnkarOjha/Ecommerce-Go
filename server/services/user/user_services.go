@@ -24,6 +24,7 @@ func RegisterUserService(ctx *gin.Context, registerRequest context.UserRequest) 
 	}
 
 	var user model.User
+
 	user.Contact = registerRequest.UserContact
 	user.UserName = registerRequest.UserName
 
@@ -155,9 +156,19 @@ func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 	response.ShowResponse("Success", utils.HTTP_OK, "User Profile updated successfully", user, ctx)
 }
 
-func LogoutUserService(ctx *gin.Context, logoutUser context.LogoutUser) {
+func LogoutUserService(ctx *gin.Context) {
+	userId, err := order.UserIdFromToken(ctx)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
+		return
+	}
+
+	if userId == "" {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "No User ID provided")
+		return
+	}
 	var user model.User
-	err := db.FindById(&user, logoutUser.UserId,
+	err = db.FindById(&user, userId,
 		"user_id")
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding user")
@@ -169,7 +180,7 @@ func LogoutUserService(ctx *gin.Context, logoutUser context.LogoutUser) {
 	db.QueryExecutor(query, user, user.UserId)
 
 	var userSession model.Session
-	err = db.FindById(&userSession, logoutUser.UserId, "user_id")
+	err = db.FindById(&userSession, userId, "user_id")
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding user session")
 		return

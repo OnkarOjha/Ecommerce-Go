@@ -140,7 +140,6 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 	fmt.Println("pi1", pi1)
 
 	var payment model.Payment
-
 	//create payment
 	payment.PaymentId = pi1.ID
 	payment.UserId = userId
