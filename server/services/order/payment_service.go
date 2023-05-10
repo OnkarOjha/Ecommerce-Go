@@ -64,16 +64,29 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		return
 	}
 
+	//coupons
+	var productPrice float64
+	var couponToRedeem model.Coupons
+	if paymentRequest.CouponName != "" {
+		productPrice, couponToRedeem, err = RedeemCoupon(ctx, paymentRequest.CouponName, cartProduct.ProductPrice, userId)
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+			return
+		}
+	} else {
+		productPrice = cartProduct.ProductPrice
+	}
+
 	// stripe payment api call
-	pi, pi1 := stripeservice.StripePayment(int64(cartProduct.ProductPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
+	pi, pi1 := stripeservice.StripePayment(int64(productPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
 	fmt.Println("pi", pi.Status)
 	fmt.Println("pi1", pi1)
 
-	var payment model.Payment
 	//create payment
+	var payment model.Payment
 	payment.PaymentId = pi1.ID
 	payment.UserId = userId
-	payment.PaymentAmount = cartProduct.ProductPrice
+	payment.PaymentAmount = productPrice
 	payment.PaymentType = "card"
 	payment.PaymentStatus = string(pi1.Status)
 	err = db.CreateRecord(&payment)
@@ -104,11 +117,17 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		return
 	}
 
+	//coupon redmeption update
+	if paymentRequest.CouponName != "" {
+		CouponRedemptionUpdate(couponToRedeem.CouponId, order.OrderId, order.CreatedAt)
+	}
+
 	//create user payment details
 	var userPaymentDetails model.UserPayments
 	userPaymentDetails.PaymentId = payment.PaymentId
 	userPaymentDetails.UserId = userId
 	userPaymentDetails.OrderId = payment.OrderId
+	userPaymentDetails.CouponRedeemed = paymentRequest.CouponName
 	err = db.CreateRecord(&userPaymentDetails)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
@@ -146,13 +165,14 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		OrderId:         payment.OrderId,
 		UserId:          userId,
 		PaymentId:       pi1.ID,
-		PaymentAmount:   cartProduct.ProductPrice,
+		PaymentAmount:   productPrice,
 		PaymentDate:     payment.CreatedAt,
 		CartId:          paymentRequest.CartId,
 		ProductId:       paymentRequest.ProductId,
 		ProductName:     productDetails.ProductName,
 		ProductCategory: productDetails.ProductCategory,
 		ProductBrand:    productDetails.ProductBrand,
+		OrderStatus:     order.OrderStatus,
 	}
 
 	response.ShowResponse(
@@ -163,6 +183,35 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		ctx,
 	)
 
+}
+
+// function to redeem coupon with given code
+func RedeemCoupon(ctx *gin.Context, couponName string, orderPrice float64, userId string) (float64, model.Coupons, error) {
+	var couponToRedeem model.Coupons
+	if !db.BothExists("user_payments", "user_id", userId, "coupon_redeemed", couponName) {
+		return 0, couponToRedeem, fmt.Errorf("sorry , you already have redeemed this coupon")
+	}
+	if !db.RecordExist("coupons", "coupon_name", couponName) {
+		return 0, couponToRedeem, fmt.Errorf("coupon does not exist")
+	}
+
+	err := db.FindById(&couponToRedeem, couponName, "coupon_name")
+	if err != nil {
+		return 0, couponToRedeem, fmt.Errorf("coupon not found from database")
+	}
+
+	productPrice := orderPrice * (1 - couponToRedeem.CouponPrice)
+
+	return productPrice, couponToRedeem, nil
+}
+
+//Coupon Redemption table update
+func CouponRedemptionUpdate(couponId string, orderId string, redeemedAt time.Time) {
+	var couponRedemption model.CouponRedemptions
+	couponRedemption.CouponId = couponId
+	couponRedemption.OrderId = orderId
+	couponRedemption.RedeemedAt = redeemedAt
+	db.CreateRecord(&couponRedemption)
 }
 
 //Get Order Details that already has payment done
@@ -293,8 +342,21 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 		return
 	}
 
+	//coupons
+	var productPrice float64
+	var couponToRedeem model.Coupons
+	if paymentRequest.CouponName != "" {
+		productPrice, couponToRedeem, err = RedeemCoupon(ctx, paymentRequest.CouponName, cartProduct.TotalPrice, userId)
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+			return
+		}
+	} else {
+		productPrice = cartProduct.TotalPrice
+	}
+
 	// stripe payment api call
-	pi, pi1 := stripeservice.StripePayment(int64(cartProduct.TotalPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
+	pi, pi1 := stripeservice.StripePayment(int64(productPrice), paymentRequest.CardNumber, paymentRequest.ExpMonth, paymentRequest.ExpYear, paymentRequest.CVC, ctx)
 	fmt.Println("pi", pi.Status)
 	fmt.Println("pi1", pi1)
 
@@ -302,7 +364,7 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 	var payment model.Payment
 	payment.PaymentId = pi1.ID
 	payment.UserId = userId
-	payment.PaymentAmount = cartProduct.TotalPrice
+	payment.PaymentAmount = productPrice
 	payment.PaymentType = "card"
 	payment.PaymentStatus = string(pi1.Status)
 	err = db.CreateRecord(&payment)
@@ -332,11 +394,17 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 		return
 	}
 
+	//coupon redmeption update
+	if paymentRequest.CouponName != "" {
+		CouponRedemptionUpdate(couponToRedeem.CouponId, order.OrderId, order.CreatedAt)
+	}
+
 	//create user payment details
 	var userPaymentDetails model.UserPayments
 	userPaymentDetails.PaymentId = payment.PaymentId
 	userPaymentDetails.UserId = userId
 	userPaymentDetails.OrderId = payment.OrderId
+	userPaymentDetails.CouponRedeemed = paymentRequest.CouponName
 	err = db.CreateRecord(&userPaymentDetails)
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
@@ -364,6 +432,7 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 		PaymentAmount: cartProduct.TotalPrice,
 		PaymentDate:   payment.CreatedAt,
 		CartId:        paymentRequest.CartId,
+		OrderStatus:   order.OrderStatus,
 	}
 
 	response.ShowResponse(

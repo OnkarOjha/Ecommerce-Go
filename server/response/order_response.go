@@ -27,4 +27,5 @@ type CartOrderCompletionResponse struct {
 	PaymentAmount float64   `json:"paymentAmount"`
 	PaymentDate   time.Time `json:"paymentDate"`
 	CartId        string    `json:"cartId"`
+	OrderStatus   string    `json:"orderStatus"`
 }

@@ -8,6 +8,7 @@ type OrderRequest struct {
 	ExpMonth   string `json:"expMonth" validate:"required"`
 	ExpYear    string `json:"expYear" validate:"required"`
 	CVC        string `json:"cvc" validate:"required"`
+	CouponName string `json:"couponName"`
 }
 
 // Cancel Order struct
@@ -22,6 +23,7 @@ type CartOrderRequest struct {
 	ExpMonth   string `json:"expMonth" validate:"required"`
 	ExpYear    string `json:"expYear" validate:"required"`
 	CVC        string `json:"cvc" validate:"required"`
+	CouponName string `json:"couponName"`
 }
 
 // Vendor Order status Update
