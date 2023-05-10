@@ -144,12 +144,18 @@ func GetUserByIdService(context *gin.Context) {
 
 //Edit User Details
 func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
-	if !db.RecordExist("users", "user_id", editUserRequest.UserId) {
+	userId, err := order.IdFromToken(ctx)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "User Not Found")
+		return
+	}
+
+	if !db.RecordExist("users", "user_id", userId) {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "User not found")
 		return
 	}
 	var user model.User
-	err := db.FindById(&user, editUserRequest.UserId,
+	err = db.FindById(&user, userId,
 		"user_id")
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding user")
@@ -157,7 +163,7 @@ func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 
 	user.UserName = editUserRequest.UserName
 	user.Gender = editUserRequest.Gender
-	db.UpdateRecord(&user, editUserRequest.UserId, "user_id")
+	db.UpdateRecord(&user, userId, "user_id")
 
 	response.ShowResponse("Success", utils.HTTP_OK, "User Profile updated successfully", user, ctx)
 }

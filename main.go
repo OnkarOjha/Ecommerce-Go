@@ -12,10 +12,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// @title Gin Demo App
-// @version 1.0
-// @description This is a demo version of Gin app.
-// @BasePath /
+// @title Ecommerce
+// @version 1.0.0
+// @description API Documentation for Ecommerce-Application
+// @host localhost:3000
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
