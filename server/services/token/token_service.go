@@ -57,12 +57,12 @@ func DecodeToken(context *gin.Context, tokenString string) (Claims, error) {
 			fmt.Println("user to be logged out ", userToBeLoggedOut)
 
 			var userSessionToBeDeleted model.Session
-			err = db.FindById(&userSessionToBeDeleted, claims.UserId, "user_id")
+			err = db.FindById(&userSessionToBeDeleted, tokenString, "token")
 			if err != nil {
-				return *claims, fmt.Errorf("error finding user in db")
+				return *claims, fmt.Errorf("error finding token in session db")
 			}
 
-			db.DeleteRecord(&userSessionToBeDeleted, claims.UserId, "user_id")
+			db.DeleteRecord(&userSessionToBeDeleted, tokenString, "token")
 
 			return *claims, fmt.Errorf("token has expired , please proceed to login")
 		}
