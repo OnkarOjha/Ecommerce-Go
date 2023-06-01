@@ -84,11 +84,13 @@ func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 		var user model.User
 		var userSession model.Session
 		err := db.FindById(&user, verifyOtpRequest.UserContact, "contact")
-
 		if err != nil {
 			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding user in DB")
 			return
 		}
+		// user session check
+		UserSessionManagement(ctx, user.UserId)
+
 		user.Is_Active = true
 		tokenClaims.UserId = user.UserId
 		tokenClaims.Phone = user.Contact
@@ -107,7 +109,7 @@ func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error creating record: "+err.Error())
 			return
 		}
-		response.ShowResponse("Success", utils.HTTP_OK, "User verified successfully", user, ctx)
+		// response.ShowResponse("Success", utils.HTTP_OK, "User verified successfully", user, ctx)
 		response.ShowResponse("Success", utils.HTTP_OK, "Session created successfully", userSession, ctx)
 
 	}
@@ -115,6 +117,34 @@ func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Verification Failed")
 		return
+	}
+}
+
+func UserSessionManagement(ctx *gin.Context, userId string) {
+	var session []model.Session
+
+	db.InitDB().Find(&session)
+	var sessionCount int
+	query := "SELECT COUNT(*) FROM sessions WHERE user_id = '" + userId + "';"
+	err := db.QueryExecutor(query, &sessionCount)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Unable to execute query")
+		return
+	}
+
+	if sessionCount > 4 {
+		var oldUserSession model.Session
+		query := "SELECT * FROM sessions ORDER BY created_at ASC LIMIT 1;"
+		err = db.QueryExecutor(query, &oldUserSession)
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Unable to execute query")
+			return
+		}
+		err = db.DeleteRecord(&oldUserSession, oldUserSession.SessionId, "session_id")
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Unable to delete record")
+			return
+		}
 	}
 }
 
@@ -312,4 +342,20 @@ func UserAddressRetrieveService(ctx *gin.Context) {
 		userAddress,
 		ctx,
 	)
+}
+
+func UserDeleteService(ctx *gin.Context, userDelete *context.LogoutUser) {
+	query := "delete from users where user_id='" + userDelete.UserId + "';"
+	err := db.QueryExecutor(query, &userDelete)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error executing query")
+		return
+	}
+
+	query1 := "delete from sessions where user_id='" + userDelete.UserId + "';"
+	err = db.QueryExecutor(query1, &userDelete)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error executing query")
+		return
+	}
 }

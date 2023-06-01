@@ -672,6 +672,40 @@ paths:
       summary: Search Bar History
       tags:
       - Search&Filter
+  /user-delete:
+    post:
+      consumes:
+      - application/json
+      description: This Handler will Delete user from users db and will delete it's
+        session
+      parameters:
+      - description: user id of user
+        in: body
+        name: user-delete
+        required: true
+        schema:
+          example: '{ "userId" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Delete
+      tags:
+      - User
   /user/address:
     post:
       consumes:
@@ -737,6 +771,37 @@ paths:
           schema:
             type: string
       summary: User Address Retrieve Handler
+      tags:
+      - User
+  /username-exists:
+    get:
+      consumes:
+      - application/json
+      description: Registering User with initial details in DB
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Register Handler
       tags:
       - User
   /vendor-edit-details:

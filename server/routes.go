@@ -67,6 +67,10 @@ func ConfigureRoutes(server *Server) {
 	server.engine.POST("/coupon-add", handler.AddCouponHandler)
 	server.engine.GET("/coupon-get", handler.GetCouponsHandler)
 
+	// common routes
+	server.engine.POST("/user-delete", handler.UserDeleteHandler)
+	server.engine.GET("/username-exists", handler.UserNameHandler)
+
 	server.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 }

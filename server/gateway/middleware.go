@@ -14,6 +14,11 @@ import (
 func UserAuthorization(c *gin.Context) {
 
 	tokenString, err := utils.GetTokenFromAuthHeader(c)
+	if tokenString == "" {
+		response.ErrorResponse(c, utils.HTTP_BAD_REQUEST, "Token is required")
+		c.Abort()
+		return
+	}
 	if err != nil {
 		response.ErrorResponse(
 			c, utils.HTTP_UNAUTHORIZED, "Error fetching token",
@@ -33,6 +38,7 @@ func UserAuthorization(c *gin.Context) {
 
 	if claims.Role != "customer" {
 		response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, "Token doesnot belong to a customer")
+		c.Abort()
 		return
 	}
 
@@ -82,6 +88,7 @@ func VendorAuthorization(c *gin.Context) {
 
 	if claims.Role != "vendor" {
 		response.ErrorResponse(c, utils.HTTP_UNAUTHORIZED, "Token doesnot belong to a vendor")
+		c.Abort()
 		return
 	}
 
@@ -111,10 +118,11 @@ func VendorAuthorization(c *gin.Context) {
 // CORS middlewware
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(utils.HTTP_NO_CONTENT)

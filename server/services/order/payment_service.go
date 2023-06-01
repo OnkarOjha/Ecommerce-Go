@@ -18,6 +18,10 @@ import (
 // Get ID from token
 func IdFromToken(ctx *gin.Context) (string, error) {
 	tokenString, err := utils.GetTokenFromAuthHeader(ctx)
+	if tokenString == "" {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Token not found")
+		return "", err
+	}
 	if err != nil {
 
 		return "", err

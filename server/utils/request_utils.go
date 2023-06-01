@@ -23,6 +23,7 @@ func RequestDecoding(context *gin.Context, data interface{}) error {
 
 // Set Header for content
 func SetHeader(context *gin.Context) {
-	context.Writer.Header().Set("Content-Type", "application/json")
+	context.Header("Access-Control-Allow-Origin", "*")
+	context.Header("Content-Type", "application/json")
 
 }

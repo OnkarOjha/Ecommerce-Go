@@ -33,7 +33,7 @@ func UserRegisterHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = validation.CheckValidation(&registerRequest)
+	err = registerRequest.Validate()
 
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
@@ -147,7 +147,7 @@ func EditUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	err = validation.CheckValidation(&editUserRequest)
+	err = editUserRequest.Validate()
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
 		return
@@ -221,4 +221,30 @@ func UserAddressRetrieveHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
 	user.UserAddressRetrieveService(ctx)
+}
+
+// @Summary  		User Delete
+// @Description  	This Handler will Delete user from users db and will delete it's session
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param   		user-delete body string true "user id of user" SchemaExample({ "userId" : "string"})
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/user-delete [post]]
+func UserDeleteHandler(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	var userDelete context.LogoutUser
+
+	err := utils.RequestDecoding(ctx, &userDelete)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())
+		return
+	}
+
+	user.UserDeleteService(ctx, &userDelete)
+
 }
