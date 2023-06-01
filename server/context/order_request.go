@@ -1,6 +1,6 @@
 package context
 
-//Order Place Request struct
+// Order Place Request struct
 type OrderRequest struct {
 	CartId     string `json:"cartId" validate:"required"`
 	ProductId  string `json:"productId" validate:"required"`
@@ -16,7 +16,7 @@ type CancelOrderRequest struct {
 	OrderId string `json:"orderId" validate:"required"`
 }
 
-//Order all the products from cart
+// Order all the products from cart
 type CartOrderRequest struct {
 	CartId     string `json:"cartId" validate:"required"`
 	CardNumber string `json:"cardNumber" validate:"required"`

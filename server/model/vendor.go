@@ -19,8 +19,8 @@ type Vendor struct {
 	PostalCode    string         `json:"postalCode"`
 	Country       string         `json:"country"`
 	Description   string         `json:"description"`
-	Logo          string         `json:"logo"`
-	BannerImage   string         `json:"bannerImage"`
+	Logo          []byte         `json:"logo" gorm:"bytea"`
+	BannerImage   []byte         `json:"bannerImage" gorm:"bytea"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	DeletedAt     gorm.DeletedAt `json:"deletedAt" gorm:"index"`

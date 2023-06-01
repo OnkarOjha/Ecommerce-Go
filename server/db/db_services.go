@@ -32,7 +32,7 @@ func FindById(data interface{}, id interface{}, columName string) error {
 	return nil
 }
 
-//Update Record by ID
+// Update Record by ID
 func UpdateRecord(data interface{}, id interface{}, columName string) *gorm.DB {
 	column := columName + "=?"
 	result := db.Where(column, id).Updates(data)
@@ -50,7 +50,7 @@ func QueryExecutor(query string, data interface{}, args ...interface{}) error {
 	return nil
 }
 
-//soft delete
+// soft delete
 func DeleteRecord(data interface{}, id interface{}, columName string) error {
 	column := columName + "=?"
 	result := db.Where(column, id).Delete(data)
@@ -87,7 +87,7 @@ func BothExists(tablename string, column1 string, value1 string, column2 string,
 	return exists
 }
 
-//DB function to clear search history table
+// DB function to clear search history table
 func SearchHistoryClear() {
 	fmt.Println("clearing previous history...")
 	db.Exec(`CREATE OR REPLACE FUNCTION truncate_rows_if_exceeds_threshold(threshold INTEGER, table_name TEXT) RETURNS VOID AS $$
@@ -96,11 +96,11 @@ func SearchHistoryClear() {
 	BEGIN
 		-- Get the count of rows in the table
 		EXECUTE format('SELECT COUNT(*) FROM %I', table_name) INTO count_rows;
-	
+
 		-- Check if the count of rows exceeds the threshold value
 		IF count_rows > threshold THEN
 			-- Truncate the first 10 rows
-			
+
 			EXECUTE format('DELETE FROM %I WHERE id IN (SELECT id FROM %I LIMIT 10)', table_name, table_name);
 		END IF;
 	END;

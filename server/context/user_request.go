@@ -23,7 +23,7 @@ type EditUser struct {
 	UserName string `json:"username"`
 }
 
-//Logout User
+// Logout User
 type LogoutUser struct {
 	UserId string `json:"userId" validate:"required"`
 }

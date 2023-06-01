@@ -38,7 +38,7 @@ func (a VendorRegisterRequest) ValidateRegister() error {
 	)
 }
 
-//vendor login request
+// vendor login request
 type VendorLoginRequest struct {
 	GstNumber      string `json:"gstNumber" validate:"required"`
 	CompanyContact string `json:"companyContact" validate:"required"`

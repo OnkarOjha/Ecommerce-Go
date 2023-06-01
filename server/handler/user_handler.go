@@ -27,9 +27,13 @@ func UserRegisterHandler(ctx *gin.Context) {
 
 	var registerRequest context.UserRequest
 
-	utils.RequestDecoding(ctx, &registerRequest)
+	err := utils.RequestDecoding(ctx, &registerRequest)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to decode request")
+		return
+	}
 
-	err := validation.CheckValidation(&registerRequest)
+	err = validation.CheckValidation(&registerRequest)
 
 	if err != nil {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, err.Error())

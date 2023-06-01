@@ -16,6 +16,7 @@ require (
 	github.com/swaggo/swag v1.16.1
 	github.com/twilio/twilio-go v1.6.0
 	golang.org/x/crypto v0.6.0
+	golang.org/x/tools v0.9.2 // indirect
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/gorm v1.25.0
 )

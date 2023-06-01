@@ -20,7 +20,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-//Generate JWT Token
+// Generate JWT Token
 func GenerateToken(claims Claims, context *gin.Context) string {
 	//create user claims
 
@@ -34,7 +34,7 @@ func GenerateToken(claims Claims, context *gin.Context) string {
 	return tokenString
 }
 
-//Decode Token function
+// Decode Token function
 func DecodeToken(context *gin.Context, tokenString string) (Claims, error) {
 	claims := &Claims{}
 
@@ -53,7 +53,10 @@ func DecodeToken(context *gin.Context, tokenString string) (Claims, error) {
 				return *claims, fmt.Errorf("error finding user in db")
 			}
 			query := "UPDATE users SET is_active = false WHERE user_id = '" + claims.UserId + "'"
-			db.QueryExecutor(query, &userToBeLoggedOut)
+			err = db.QueryExecutor(query, &userToBeLoggedOut)
+			if err != nil {
+				return *claims, fmt.Errorf("not able to execute the given query")
+			}
 			fmt.Println("user to be logged out ", userToBeLoggedOut)
 
 			var userSessionToBeDeleted model.Session
@@ -62,7 +65,10 @@ func DecodeToken(context *gin.Context, tokenString string) (Claims, error) {
 				return *claims, fmt.Errorf("error finding token in session db")
 			}
 
-			db.DeleteRecord(&userSessionToBeDeleted, tokenString, "token")
+			err = db.DeleteRecord(&userSessionToBeDeleted, tokenString, "token")
+			if err != nil {
+				return *claims, fmt.Errorf("error deleting token in session db")
+			}
 
 			return *claims, fmt.Errorf("token has expired , please proceed to login")
 		}

@@ -1,16 +1,17 @@
 package product
 
 import (
-	"github.com/gin-gonic/gin"
 	"main/server/context"
 	"main/server/db"
 	"main/server/model"
 	"main/server/response"
 	"main/server/services/order"
 	"main/server/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
-//Inventory product add
+// Inventory product add
 func InventoryProductAddService(ctx *gin.Context, addProduct model.Products) {
 	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -33,15 +34,27 @@ func InventoryProductAddService(ctx *gin.Context, addProduct model.Products) {
 		if db.RecordExist("db_constants", "constant_name", addProduct.ProductCategory) {
 			return
 		}
-		db.CreateRecord(&dbconstants)
+		err = db.CreateRecord(&dbconstants)
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to create record")
+			return
+		}
 	}
 	addProduct.ProductInventory++
-	db.CreateRecord(&addProduct)
+	err = db.CreateRecord(&addProduct)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to create record")
+		return
+	}
 
 	var vendorInventory model.VendorInventory
 	vendorInventory.VendorId = vendorId
 	vendorInventory.ProductId = addProduct.ProductId
-	db.CreateRecord(&vendorInventory)
+	err = db.CreateRecord(&vendorInventory)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to create record")
+		return
+	}
 
 	response.ShowResponse(
 		"Success",
@@ -52,7 +65,7 @@ func InventoryProductAddService(ctx *gin.Context, addProduct model.Products) {
 	)
 }
 
-//Inventory product Update
+// Inventory product Update
 func InventoryProductUpdateService(ctx *gin.Context, productInventoryEdit model.Products) {
 	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -71,7 +84,11 @@ func InventoryProductUpdateService(ctx *gin.Context, productInventoryEdit model.
 
 	db.UpdateRecord(&productInventoryEdit, productInventoryEdit.ProductId, "product_id")
 
-	db.FindById(&productInventoryEdit, productInventoryEdit.ProductId, "product_id")
+	err = db.FindById(&productInventoryEdit, productInventoryEdit.ProductId, "product_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to find record")
+		return
+	}
 	response.ShowResponse(
 		"Success",
 		200,
@@ -81,7 +98,7 @@ func InventoryProductUpdateService(ctx *gin.Context, productInventoryEdit model.
 	)
 }
 
-//Inventory product Delete
+// Inventory product Delete
 func InventoryProductDeleteService(ctx *gin.Context, productInventoryDelete context.ProductDeleteRequest) {
 	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -115,7 +132,11 @@ func InventoryProductDeleteService(ctx *gin.Context, productInventoryDelete cont
 		return
 	}
 
-	db.FindById(&vendorInventory, vendorId, "vendor_id")
+	err = db.FindById(&vendorInventory, vendorId, "vendor_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to find record")
+		return
+	}
 	response.ShowResponse(
 		"Success",
 		200,

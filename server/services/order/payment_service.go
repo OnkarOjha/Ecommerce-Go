@@ -143,9 +143,17 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 		var dbconstant model.DbConstant
 		dbconstant.ConstantName = "dispatched"
 		dbconstant.ConstantShortHand = "DISPATCHED"
-		db.CreateRecord(&dbconstant)
+		err = db.CreateRecord(&dbconstant)
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "unable to create record")
+			return
+		}
 	}
-	db.CreateRecord(&orderRequest)
+	err = db.CreateRecord(&orderRequest)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "unable to create record")
+		return
+	}
 
 	//product details
 	var productDetails model.Products
@@ -157,7 +165,11 @@ func MakePaymentService(ctx *gin.Context, paymentRequest context.OrderRequest) {
 
 	//inventory update
 	var inventory model.Products
-	db.FindById(&inventory, paymentRequest.ProductId, "product_id")
+	err = db.FindById(&inventory, paymentRequest.ProductId, "product_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding record in DB ")
+		return
+	}
 	inventory.ProductInventory--
 	db.UpdateRecord(&inventory, paymentRequest.ProductId, "product_id")
 
@@ -205,16 +217,19 @@ func RedeemCoupon(ctx *gin.Context, couponName string, orderPrice float64, userI
 	return productPrice, couponToRedeem, nil
 }
 
-//Coupon Redemption table update
+// Coupon Redemption table update
 func CouponRedemptionUpdate(couponId string, orderId string, redeemedAt time.Time) {
 	var couponRedemption model.CouponRedemptions
 	couponRedemption.CouponId = couponId
 	couponRedemption.OrderId = orderId
 	couponRedemption.RedeemedAt = redeemedAt
-	db.CreateRecord(&couponRedemption)
+	err := db.CreateRecord(&couponRedemption)
+	if err != nil {
+		return
+	}
 }
 
-//Get Order Details that already has payment done
+// Get Order Details that already has payment done
 func GetOrderDetails(ctx *gin.Context) {
 	userId, err := IdFromToken(ctx)
 	if err != nil {
@@ -267,7 +282,7 @@ func GetOrderDetails(ctx *gin.Context) {
 
 }
 
-//Alot address according to params passed
+// Alot address according to params passed
 func AlotAddressForConfirmedOrders(ctx *gin.Context, userId string, addressType string) (string, error) {
 	var userDefaultAddress model.UserAddresses
 	query := "SELECT * FROM user_addresses WHERE user_id='" + userId + "' AND address_type='" + addressType + "'"
@@ -282,7 +297,7 @@ func AlotAddressForConfirmedOrders(ctx *gin.Context, userId string, addressType 
 	return address, nil
 }
 
-//Cancel Order and Refund
+// Cancel Order and Refund
 func CancelOrderService(ctx *gin.Context, cancelOrderRequest context.CancelOrderRequest) {
 
 	var order model.Order
@@ -305,18 +320,30 @@ func CancelOrderService(ctx *gin.Context, cancelOrderRequest context.CancelOrder
 	}
 	order.OrderStatus = "CANCELLED"
 	query := "UPDATE orders SET order_status = 'CANCELLED' WHERE order_id ='" + order.OrderId + "'"
-	db.QueryExecutor(query, &order)
+	err = db.QueryExecutor(query, &order)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Unable to execute query")
+		return
+	}
 
 	// amount refund
 	payment.RefundAmount = payment.PaymentAmount - payment.PaymentAmount*2.7
 	query = "UPDATE payments set refund_amount = '" + strconv.Itoa(int(payment.RefundAmount)) + "' WHERE payment_id ='" + payment.PaymentId + "'"
-	db.QueryExecutor(query, &payment)
+	err = db.QueryExecutor(query, &payment)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error executing query")
+		return
+	}
 
 	var userPayment model.UserPayments
-	db.Delete(&userPayment, payment.PaymentId, "payment_id")
+	err = db.Delete(&userPayment, payment.PaymentId, "payment_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error deleting payment record")
+		return
+	}
 }
 
-//Make Cart Payment
+// Make Cart Payment
 func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRequest) {
 	userId, err := IdFromToken(ctx)
 	if err != nil {
@@ -415,12 +442,20 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 	var inventory model.Products
 	var cartProducts []model.CartProducts
 	var productIds []string
-	db.FindById(&cartProducts, paymentRequest.CartId, "cart_id")
+	err = db.FindById(&cartProducts, paymentRequest.CartId, "cart_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Unable to find cart id")
+		return
+	}
 	for _, product := range cartProducts {
 		productIds = append(productIds, product.ProductId)
 	}
 	for _, productId := range productIds {
-		db.FindById(&inventory, productId, "product_id")
+		err = db.FindById(&inventory, productId, "product_id")
+		if err != nil {
+			response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Error finding inventory")
+			return
+		}
 		inventory.ProductInventory--
 		db.UpdateRecord(&inventory, productId, "product_id")
 	}
@@ -445,7 +480,7 @@ func MakeCartPaymentService(ctx *gin.Context, paymentRequest context.CartOrderRe
 
 }
 
-//Vendor Order Status Set
+// Vendor Order Status Set
 func VendorOrderStatusUpdateService(ctx *gin.Context, orderUpdateRequest context.VendorOrderStatusUpdate) {
 
 	if !db.RecordExist("order_request", "order_id", orderUpdateRequest.OrderId) {
@@ -454,7 +489,11 @@ func VendorOrderStatusUpdateService(ctx *gin.Context, orderUpdateRequest context
 	}
 	var orderRequest model.OrderRequest
 
-	db.FindById(&orderRequest, orderUpdateRequest.OrderId, "order_id")
+	err := db.FindById(&orderRequest, orderUpdateRequest.OrderId, "order_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "Unable to find order request")
+		return
+	}
 	orderRequest.OrderStatus = "DELIVERED"
 	db.UpdateRecord(&orderRequest, orderUpdateRequest.OrderId, "order_id")
 

@@ -10,7 +10,7 @@ import (
 	"github.com/stripe/stripe-go/v72/paymentmethod"
 )
 
-//stripe payment service
+// stripe payment service
 func StripePayment(OrderPrice int64, cardNumber string, expMonth string, expYear string, cvc string, ctx *gin.Context) (pi, pi1 *stripe.PaymentIntent) {
 
 	stripe.Key = "sk_test_51MvCYxSGxKXiPagaKdfa8MM2nYhjysJ41IUESqCLjca0meSTlzal4wbqMFZDbpTa5w1YXvdwygU8yMYbBecfgLCC00Yrx2WfFF"

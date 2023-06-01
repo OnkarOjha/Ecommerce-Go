@@ -10,14 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//Add valid coupons to database
+// Add valid coupons to database
 func AddCouponService(ctx *gin.Context, addCoupon *model.Coupons) {
 	if db.RecordExist("coupons", "coupon_name", addCoupon.CouponName) {
 		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Coupon already exits")
 		return
 	}
 	addCoupon.ExpiresAt = time.Now().Add(time.Hour * 24 * 7)
-	db.CreateRecord(&addCoupon)
+	err := db.CreateRecord(&addCoupon)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "unable to create record")
+		return
+	}
 
 	response.ShowResponse(
 		"Success",

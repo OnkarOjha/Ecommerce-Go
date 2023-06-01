@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//DB model to show payment details
+// DB model to show payment details
 type Payment struct {
 	OrderId       string         `json:"orderId" gorm:"default:uuid_generate_v4();unique;primaryKey"`
 	PaymentId     string         `json:"paymentId"`
@@ -20,7 +20,7 @@ type Payment struct {
 	DeletedAt     gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 }
 
-//DB model to represent the relation of which user has placed which order
+// DB model to represent the relation of which user has placed which order
 type UserPayments struct {
 	UserId         string         `json:"userId"`
 	PaymentId      string         `json:"paymentId"`

@@ -182,7 +182,7 @@ func AddProductService(ctx *gin.Context, addProductCountRequest context.AddToCar
 	}
 }
 
-//Remove all cart service
+// Remove all cart service
 func RemoveFromCartService(ctx *gin.Context, removeFromCartRequest context.RemoveFromCart) {
 	userId, err := IdFromToken(ctx)
 	if err != nil {
@@ -301,7 +301,7 @@ func RemoveProductService(ctx *gin.Context, removeProductFromCart context.Remove
 	response.ShowResponse("Success", utils.HTTP_OK, "Cart Details after decrement", cart, ctx)
 }
 
-//Show the cart product details
+// Show the cart product details
 func GetCartDetailsService(ctx *gin.Context) {
 	userId, err := IdFromToken(ctx)
 	if err != nil {

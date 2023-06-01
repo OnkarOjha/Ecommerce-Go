@@ -16,7 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-//Register User Service
+// Register User Service
 func RegisterUserService(ctx *gin.Context, registerRequest context.UserRequest) {
 	// check if user already registered
 	if db.RecordExist("users", "contact", registerRequest.UserContact) {
@@ -43,7 +43,7 @@ func RegisterUserService(ctx *gin.Context, registerRequest context.UserRequest) 
 	)
 }
 
-//User Login Service
+// User Login Service
 func UserLoginService(ctx *gin.Context, userLogin context.UserLogin) {
 	// check that number is registered or not
 	if !db.RecordExist("users", "contact", userLogin.UserContact) {
@@ -75,7 +75,7 @@ func UserLoginService(ctx *gin.Context, userLogin context.UserLogin) {
 	}
 }
 
-//User Verify Service with OTP and user signin
+// User Verify Service with OTP and user signin
 func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 	veriyStatus, err := twilio.VerifyOtpService(ctx, verifyOtpRequest.UserContact, verifyOtpRequest.Otp)
 	if veriyStatus == "approved" {
@@ -118,7 +118,7 @@ func UserVerifyService(ctx *gin.Context, verifyOtpRequest context.VerifyOtp) {
 	}
 }
 
-//User Get service
+// User Get service
 func GetUserByIdService(context *gin.Context) {
 
 	userId, err := order.IdFromToken(context)
@@ -142,7 +142,7 @@ func GetUserByIdService(context *gin.Context) {
 	response.ShowResponse("Success", utils.HTTP_OK, "User Fetched successfully", user, context)
 }
 
-//Edit User Details
+// Edit User Details
 func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 	userId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -168,7 +168,7 @@ func EditUserService(ctx *gin.Context, editUserRequest context.EditUser) {
 	response.ShowResponse("Success", utils.HTTP_OK, "User Profile updated successfully", user, ctx)
 }
 
-//User logout Service
+// User logout Service
 func LogoutUserService(ctx *gin.Context) {
 	userId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -190,7 +190,11 @@ func LogoutUserService(ctx *gin.Context) {
 
 	user.Is_Active = false
 	query := "UPDATE users set is_active=false where user_id=?"
-	db.QueryExecutor(query, user, user.UserId)
+	err = db.QueryExecutor(query, user, user.UserId)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Not able to execute query")
+		return
+	}
 
 	var userSession model.Session
 	err = db.FindById(&userSession, userId, "user_id")
@@ -208,7 +212,7 @@ func LogoutUserService(ctx *gin.Context) {
 	response.ShowResponse("Success", utils.HTTP_OK, "Logout Successfull", user, ctx)
 }
 
-//User Address Set DEFAULT , HOME , WORK
+// User Address Set DEFAULT , HOME , WORK
 func UserAddressService(ctx *gin.Context, userAddressRequest model.UserAddresses) {
 
 	userId, err := order.IdFromToken(ctx)
@@ -251,7 +255,7 @@ func UserAddressService(ctx *gin.Context, userAddressRequest model.UserAddresses
 	)
 }
 
-//db constant set service
+// db constant set service
 func DBConstantService(ctx *gin.Context, dbConstants model.DbConstant) {
 	if dbConstants.ConstantShortHand == "DEFAULT" || dbConstants.ConstantShortHand == "HOME" || dbConstants.ConstantShortHand != "WORK" {
 		exists1 := db.RecordExist("db_constants", "constant_short_hand", "DEFAULT")
@@ -267,7 +271,7 @@ func DBConstantService(ctx *gin.Context, dbConstants model.DbConstant) {
 	}
 }
 
-//user address retrieve
+// user address retrieve
 func UserAddressRetrieveService(ctx *gin.Context) {
 	addressType := ctx.Query("addresstype")
 

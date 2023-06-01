@@ -1,6 +1,7 @@
 package vendors
 
 import (
+	"io/ioutil"
 	"main/server/context"
 	"main/server/db"
 	"main/server/model"
@@ -15,7 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-//Vendor Register service
+// Vendor Register service
 func VendorRegisterService(ctx *gin.Context, vendorRegisterRequest context.VendorRegisterRequest) {
 	// check if user already registered
 	if db.RecordExist("vendors", "vendor_contact", vendorRegisterRequest.CompanyContact) {
@@ -52,7 +53,7 @@ func VendorRegisterService(ctx *gin.Context, vendorRegisterRequest context.Vendo
 	)
 }
 
-//Venor Login service
+// Venor Login service
 func VendorLoginService(ctx *gin.Context, vendorLoginRequest context.VendorLoginRequest) {
 	//check if the gst number is registered with the mobile number
 	if db.BothExists("vendors", "gst_in", vendorLoginRequest.GstNumber, "vendor_contact", vendorLoginRequest.CompanyContact) {
@@ -88,7 +89,7 @@ func VendorLoginService(ctx *gin.Context, vendorLoginRequest context.VendorLogin
 	}
 }
 
-//Vendor OTP Sending service
+// Vendor OTP Sending service
 func VerifyOtpService(ctx *gin.Context, verifyOtpRequest context.VendorVerifyOtpRequest) {
 	otpCookie, err := ctx.Request.Cookie("otp")
 	if err != nil {
@@ -144,7 +145,7 @@ func VerifyOtpService(ctx *gin.Context, verifyOtpRequest context.VendorVerifyOtp
 
 }
 
-//Vendor logout and session delete
+// Vendor logout and session delete
 func VendorLogoutService(ctx *gin.Context) {
 	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -166,7 +167,11 @@ func VendorLogoutService(ctx *gin.Context) {
 
 	vendor.Is_Active = false
 	query := "UPDATE users set is_active=false where vendor_id=?"
-	db.QueryExecutor(query, vendor, vendor.VendorId)
+	err = db.QueryExecutor(query, vendor, vendor.VendorId)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_INTERNAL_SERVER_ERROR, "unable to execute query")
+		return
+	}
 
 	var userSession model.Session
 	err = db.FindById(&userSession, vendorId, "user_id")
@@ -184,7 +189,7 @@ func VendorLogoutService(ctx *gin.Context) {
 	response.ShowResponse("Success", utils.HTTP_OK, "Logout Successfull", vendor, ctx)
 }
 
-//Edit vendor details
+// Edit vendor details
 func VendorEditDetailsService(ctx *gin.Context, editDetailsRequest context.VendorEditDetailsRequest) {
 	vendorId, err := order.IdFromToken(ctx)
 	if err != nil {
@@ -212,8 +217,8 @@ func VendorEditDetailsService(ctx *gin.Context, editDetailsRequest context.Vendo
 	vendor.PostalCode = editDetailsRequest.PostalCode
 	vendor.Country = editDetailsRequest.Country
 	vendor.Description = editDetailsRequest.Description
-	vendor.Logo = editDetailsRequest.Logo
-	vendor.BannerImage = editDetailsRequest.BannerImage
+	// vendor.BannerImage = bannerContent
+	// vendor.Logo = imageContent
 
 	db.UpdateRecord(&vendor, vendorId, "vendor_id")
 
@@ -231,5 +236,145 @@ func VendorEditDetailsService(ctx *gin.Context, editDetailsRequest context.Vendo
 		vendor,
 		ctx,
 	)
+
+}
+
+func FileUpload(ctx *gin.Context) {
+	vendorId, err := order.IdFromToken(ctx)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
+		return
+	}
+
+	if vendorId == "" {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "No Vendor ID provided")
+		return
+	}
+
+	// Get the uploaded file
+	bannerImage, _, err := ctx.Request.FormFile("bannerimage")
+	if err != nil {
+
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding file")
+		return
+	}
+	defer bannerImage.Close()
+
+	logoImage, _, err := ctx.Request.FormFile("logoimage")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding file")
+		return
+	}
+	defer logoImage.Close()
+
+	// Read the file content
+	bannerContent, err := ioutil.ReadAll(bannerImage)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error reading file content")
+		return
+	}
+
+	imageContent, err := ioutil.ReadAll(logoImage)
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error reading file content")
+		return
+	}
+
+	var vendor model.Vendor
+
+	// fmt.Println("vendfor", vendor)
+	err = db.FindById(&vendor, vendorId,
+		"vendor_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding vendor")
+		return
+	}
+	vendor.BannerImage = bannerContent
+	vendor.Logo = imageContent
+	db.UpdateRecord(&vendor, vendorId, "vendor_id")
+
+	err = db.FindById(&vendor, vendorId,
+		"vendor_id")
+	if err != nil {
+		response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Error finding vendor")
+		return
+	}
+
+	response.ShowResponse(
+		"Success",
+		utils.HTTP_OK,
+		"Upload file successfull",
+		vendor,
+		ctx,
+	)
+
+}
+
+func FileGet(ctx *gin.Context) {
+	// vendorId, err := order.IdFromToken(ctx)
+	// if err != nil {
+	// 	response.ErrorResponse(ctx, utils.HTTP_UNAUTHORIZED, "Invalid token")
+	// 	return
+	// }
+
+	// if vendorId == "" {
+	// 	response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "No Vendor ID provided")
+	// 	return
+	// }
+	// err = os.MkdirAll("./File/uploads", os.ModePerm)
+	// if err != nil {
+	// 	response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Failed initialising directory upload")
+	// 	return
+
+	// }
+
+	// var filecontent []byte
+	// query := "select logo from vendors where vendor_id='" + vendorId + "'"
+	// db.QueryExecutor(query, &filecontent)
+
+	// dst, err := os.Create(fmt.Sprintf("./File/uploads/%d", time.Now().UnixNano()))
+
+	// if err != nil {
+	// 	response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Failed assigning file name")
+	// 	return
+	// }
+
+	// defer dst.Close()
+	// // Write the file to disk
+	// // err = ioutil.WriteFile(dst.Name(), filecontent, 0644)
+	// // if err != nil {
+	// // 	panic(err)
+	// // }
+	// n, err := dst.Write(filecontent)
+	// if err != nil {
+	// 	response.ErrorResponse(ctx, utils.HTTP_BAD_REQUEST, "Failed writing to file")
+	// 	return
+	// }
+	// response.ShowResponse(
+	// 	"Success",
+	// 	200,
+	// 	"File length displayed",
+	// 	n,
+	// 	ctx,
+	// )
+
+	// // Set the Content-Disposition header to indicate the filename
+	// ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", file.Filename))
+
+	// // Set the Content-Type header based on the file extension
+	// switch filepath.Ext(file.Filename) {
+	// case ".pdf":
+	// 	ctx.Header("Content-Type", "application/pdf")
+	// case ".jpg", ".jpeg":
+	// 	ctx.Header("Content-Type", "image/jpeg")
+	// case ".png":
+	// 	ctx.Header("Content-Type", "image/png")
+	// default:
+	// 	ctx.Header("Content-Type", "application/octet-stream")
+	// }
+
+	// // Stream the file content to the HTTP response
+	// ctx.Status(http.StatusOK)
+	// io.Copy(ctx.Writer, bytes.NewReader(file.Content))
 
 }

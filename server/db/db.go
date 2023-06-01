@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//iniitliase DB
+// iniitliase DB
 func InitDB() *gorm.DB {
 
 	fmt.Println("Initalising Database...")

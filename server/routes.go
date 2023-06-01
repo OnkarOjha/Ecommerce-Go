@@ -54,6 +54,8 @@ func ConfigureRoutes(server *Server) {
 	server.engine.POST("/vendor-verify-otp", handler.VenderVerifyOtpHandler)
 	server.engine.DELETE("/vendor-logout", gateway.VendorAuthorization, handler.VendorLogoutHandler)
 	server.engine.POST("/vendor-edit-details", gateway.VendorAuthorization, handler.VendorEditDetailsHandler)
+	server.engine.POST("/vendor-file-upload", gateway.VendorAuthorization, handler.VendorFileUpload)
+	server.engine.GET("/file-get", gateway.VendorAuthorization, handler.VendorFileGet)
 
 	//vendor product management
 	server.engine.POST("/vendor-product-add", gateway.VendorAuthorization, handler.InventoryProductAddHandler)

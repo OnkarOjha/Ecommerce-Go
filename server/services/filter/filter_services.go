@@ -285,7 +285,7 @@ func SearchWithPriceToRange(context *gin.Context, productNameSearch []model.Prod
 
 var frequency int
 
-//update the search history table
+// update the search history table
 func SearchHistoryUpdate(context *gin.Context, productNameSearch []model.Products, productQuery string, priceFrom string, priceTo string, currentTime time.Time) {
 	var searchHistoryUpdate []model.SearchHistory
 

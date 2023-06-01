@@ -15,7 +15,7 @@ Two methods in `server.go`: `Run()` and `NewServer()`.
 
 ## db package
 `db` package is responsible for connection with a database. Place for DB connection initiation.
- 
+
  ## handler
  `handler` package is responsible for connection of business logic layer and transport layer.
 

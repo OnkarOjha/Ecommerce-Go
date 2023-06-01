@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//  Reponse to show product order completion
+// Reponse to show product order completion
 type OrderCompletionResponse struct {
 	OrderId         string    `json:"orderId"`
 	UserId          string    `json:"userId"`
@@ -19,7 +19,7 @@ type OrderCompletionResponse struct {
 	ProductBrand    string    `json:"productBrand"`
 }
 
-//  Reponse to show cart order completion
+// Reponse to show cart order completion
 type CartOrderCompletionResponse struct {
 	OrderId       string    `json:"orderId"`
 	UserId        string    `json:"userId"`

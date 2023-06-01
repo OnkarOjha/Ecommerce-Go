@@ -1,6 +1,6 @@
 package context
 
-//Add to Cart Request
+// Add to Cart Request
 type AddToCartRequest struct {
 	ProductId    string  `json:"productId" validate:"required" message:"ProductId "`
 	ProductCount float64 `json:"productCount" validate:"required"`

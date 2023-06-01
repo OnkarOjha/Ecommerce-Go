@@ -234,3 +234,15 @@ func InventoryProductDeleteHandler(ctx *gin.Context) {
 	product.InventoryProductDeleteService(ctx, productInventoryDelete)
 
 }
+
+func VendorFileUpload(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	vendors.FileUpload(ctx)
+}
+
+func VendorFileGet(ctx *gin.Context) {
+	utils.SetHeader(ctx)
+
+	vendors.FileGet(ctx)
+}
