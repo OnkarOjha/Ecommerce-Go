@@ -15,17 +15,1608 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/add-product": {
+            "put": {
+                "description": "Add more products of same type in cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add Products",
+                "parameters": [
+                    {
+                        "description": "product id and product count",
+                        "name": "add-product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"productId\" : \"string\", \"productCount\" : \"float64\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/add-to-cart": {
+            "post": {
+                "description": "Add products to cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add to cart handler",
+                "parameters": [
+                    {
+                        "description": "product id and product count",
+                        "name": "add-to-cart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"productId\" : \"string\", \"productCount\" : \"float64\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cancel-order": {
+            "put": {
+                "description": "Cancel Order",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Cancel Order",
+                "parameters": [
+                    {
+                        "description": "Provide Order Id to cancel order",
+                        "name": "orderId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"orderId\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart-payment": {
+            "post": {
+                "description": "Make payment for the whole cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Make Cart Payment Handler",
+                "parameters": [
+                    {
+                        "description": "Cart Order Payment",
+                        "name": "payment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{   \"productId\" : \"string\",\"cartId\" : \"string\",\"cardNumber\": \"string\",\"expMonth\": \"string\",\"expYear\": \"string\",\"cvc\": \"string\",\"couponName\" : \"string\""
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "address type",
+                        "name": "addresstype",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/coupon-add": {
+            "post": {
+                "description": "Add Coupon Handler",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "Add Coupon Handler",
+                "parameters": [
+                    {
+                        "description": "Coupon Name and Coupon price",
+                        "name": "add-coupon",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"couponName\" : \"string\", \"couponPrice\" : \"float64\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/coupon-get": {
+            "get": {
+                "description": "This Handler will get active coupons by passing \"couponName\" query parameters",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "Get Coupon Handler",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "coupon name",
+                        "name": "couponName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/edit-user": {
+            "post": {
+                "description": "This Handler enables user to edit his/her details",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Edit Profile Details",
+                "parameters": [
+                    {
+                        "description": "name and gender of user",
+                        "name": "edit-profile",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{ \"usercontact\" : \"string\" , \"gender\" : \"string\" }"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/filter/brand": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search\u0026Filter"
+                ],
+                "summary": "Filter By Brand",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Brand",
+                        "name": "brand",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/filter/category": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search\u0026Filter"
+                ],
+                "summary": "Filter By Category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category",
+                        "name": "category",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/filter/price": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search\u0026Filter"
+                ],
+                "summary": "Filter By Price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Price",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Price",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get-cart-details": {
+            "get": {
+                "description": "Get the Cart Summary",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get Cart Details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get-user": {
+            "get": {
+                "description": "This Handler provides all the user information with ID from token",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Profile Details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Login User with phone number",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Login Handler",
+                "parameters": [
+                    {
+                        "description": "phone number of the user",
+                        "name": "user-login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{ \"usercontact\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "delete": {
+                "description": "This Handler will Log out the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/order-details": {
+            "get": {
+                "description": "Get the full order details made till now",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Get Order Details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment": {
+            "post": {
+                "description": "Make payment for products from cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Make Payment Handler",
+                "parameters": [
+                    {
+                        "description": "Order Payment",
+                        "name": "payment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{   \"productId\" : \"string\",\"cartId\" : \"string\",\"cardNumber\": \"string\",\"expMonth\": \"string\",\"expYear\": \"string\",\"cvc\": \"string\",\"couponName\" : \"string\""
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "address type",
+                        "name": "addresstype",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "description": "Registering User with initial details in DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Register Handler",
+                "parameters": [
+                    {
+                        "description": "name and phone number of the user",
+                        "name": "user-register",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"username\" : \"string\", \"usercontact\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/remove-from-cart": {
+            "delete": {
+                "description": "Remove the product totally from cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove product from cart",
+                "parameters": [
+                    {
+                        "description": "CartId and ProductId",
+                        "name": "remove-product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"cartId\" : \"string\", \"productId\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/remove-product": {
+            "delete": {
+                "description": "Reduce the product count from product",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Reduce product Count",
+                "parameters": [
+                    {
+                        "description": "CartId , ProductId and product count",
+                        "name": "remove-product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"cartId\" : \"string\", \"productId\" : \"string\", \"productCount\" : \"float64\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/search-bar": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search\u0026Filter"
+                ],
+                "summary": "Search Bar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search Bar",
+                        "name": "productQuery",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search Bar",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search Bar",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/search-bar/history": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search\u0026Filter"
+                ],
+                "summary": "Search Bar History",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/address": {
+            "post": {
+                "description": "This Handler will set user address",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Address",
+                "parameters": [
+                    {
+                        "description": "user address details",
+                        "name": "user-address-set",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"name\" : \"string\",\"street\" : \"string\",\"city\" : \"string\",\"state\" : \"string\",\"postalCode\" : \"string\",\"country\" : \"string\",\"phone\" : \"string\",\"email\" : \"string\",\"addressType\" : \"home/work/default\" }"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/address-get": {
+            "get": {
+                "description": "This Handler will get user addresses by passing \"addresstype\" param as \"WORK/DEFAULT/HOME\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Address Retrieve Handler",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "address type details",
+                        "name": "addresstype",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-edit-details": {
+            "post": {
+                "description": "This Handler enables Vendor to edit his/her details",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Vendor Edit Profile Details",
+                "parameters": [
+                    {
+                        "description": "company details",
+                        "name": "edit-profile",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"companyName\": \"Ambani seth\",\"description\" : \"Abra ka dabra jbewijbwr\",\"logo\" : \"/home/chicmic/Downloads/test.jpg\",\"bannerImage\" : \"/home/chicmic/Downloads/test.jpg\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-login": {
+            "post": {
+                "description": "Login Vendor with initial details in DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Vendor Login Handler",
+                "parameters": [
+                    {
+                        "description": "vendor details",
+                        "name": "vendor-register",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"gstNumber\" : \"29ABCDE1234F1Z5\",\"companyContact\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-logout": {
+            "delete": {
+                "description": "This Handler will Log out the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Vendor Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-product-add": {
+            "post": {
+                "description": "This Handler adds multiple products from vendor side",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Product Add from vendor side",
+                "parameters": [
+                    {
+                        "description": "product description",
+                        "name": "product-add",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{   \"productName\" : \"Redmi Note 10 pro 4G\",\"productDescription\" : \"4G smart phone\",\"productPrice\" : 9999.9,\"productBrand\" : \"Redmi\",\"productCategory\" : \"mobile\",\"productImageUrl\" : \"http://dummyimage.com/169x100.png/cc0000/ffffff\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-product-delete": {
+            "post": {
+                "description": "This Handler will delete product from the inventory",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Product Delete from Inventory",
+                "parameters": [
+                    {
+                        "description": "product id",
+                        "name": "inventory-delete",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"productId\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-product-status": {
+            "post": {
+                "description": "Vendor Can update order status according to dispatched/confirmed",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Vendor Order Status",
+                "parameters": [
+                    {
+                        "description": "Provide Order Id to cancel order",
+                        "name": "orderId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"orderId\" : \"string\" ,\"orderStatus\" : \"string\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-product-update": {
+            "post": {
+                "description": "This Handler Update Product Inventory Details",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Product Inventory Update",
+                "parameters": [
+                    {
+                        "description": "product id and product inventory",
+                        "name": "product-inventory-update",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"productId\" : \"string\",\"productInventory\" : \"float64\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-register": {
+            "post": {
+                "description": "Registering Vendor with initial details in DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Vendor Register Handler",
+                "parameters": [
+                    {
+                        "description": "vendor details",
+                        "name": "vendor-register",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{  \"gstNumber\" : \"29ABCDE1234F1Z5\",\"companyName\" : \"Sports Tak\",\"companyContact\" : \"9877370350\",\"street\" : \"saytan gali kholi number 420\",\"city\" : \"mohali\",\"state\" : \"punjab\",\"postalCode\" : \"152001\",\"country\" : \"india\"}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor-verify-otp": {
+            "post": {
+                "description": "Verify the OTP against the provided phone number",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Vendor Verify OTP Handler",
+                "parameters": [
+                    {
+                        "description": "phone number and otp of the user",
+                        "name": "verify-otp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{ \"contactNumber\" : \"string\" , \"otp\" : \"string\" }"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/verify-otp": {
+            "post": {
+                "description": "Verify the OTP against the provided phone number",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Verify OTP Handler",
+                "parameters": [
+                    {
+                        "description": "phone number and otp of the user",
+                        "name": "verify-otp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "{ \"usercontact\" : \"string\" , \"otp\" : \"string\" }"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "",
-	BasePath:         "/",
+	Version:          "1.0.0",
+	Host:             "localhost:3000",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Gin Demo App",
-	Description:      "This is a demo version of Gin app.",
+	Title:            "Ecommerce",
+	Description:      "API Documentation for Ecommerce-Application",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

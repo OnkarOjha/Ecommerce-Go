@@ -1,8 +1,1070 @@
-basePath: /
+host: localhost:3000
 info:
   contact: {}
-  description: This is a demo version of Gin app.
-  title: Gin Demo App
-  version: "1.0"
-paths: {}
+  description: API Documentation for Ecommerce-Application
+  title: Ecommerce
+  version: 1.0.0
+paths:
+  /add-product:
+    put:
+      consumes:
+      - application/json
+      description: Add more products of same type in cart
+      parameters:
+      - description: product id and product count
+        in: body
+        name: add-product
+        required: true
+        schema:
+          example: '{  "productId" : "string", "productCount" : "float64"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add Products
+      tags:
+      - Cart
+  /add-to-cart:
+    post:
+      consumes:
+      - application/json
+      description: Add products to cart
+      parameters:
+      - description: product id and product count
+        in: body
+        name: add-to-cart
+        required: true
+        schema:
+          example: '{  "productId" : "string", "productCount" : "float64"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add to cart handler
+      tags:
+      - Cart
+  /cancel-order:
+    put:
+      consumes:
+      - application/json
+      description: Cancel Order
+      parameters:
+      - description: Provide Order Id to cancel order
+        in: body
+        name: orderId
+        required: true
+        schema:
+          example: '{  "orderId" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Cancel Order
+      tags:
+      - Payment
+  /cart-payment:
+    post:
+      consumes:
+      - application/json
+      description: Make payment for the whole cart
+      parameters:
+      - description: Cart Order Payment
+        in: body
+        name: payment
+        required: true
+        schema:
+          example: '{   "productId" : "string","cartId" : "string","cardNumber": "string","expMonth":
+            "string","expYear": "string","cvc": "string","couponName" : "string"'
+          type: string
+      - description: address type
+        in: query
+        name: addresstype
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Make Cart Payment Handler
+      tags:
+      - Payment
+  /coupon-add:
+    post:
+      consumes:
+      - application/json
+      description: Add Coupon Handler
+      parameters:
+      - description: Coupon Name and Coupon price
+        in: body
+        name: add-coupon
+        required: true
+        schema:
+          example: '{  "couponName" : "string", "couponPrice" : "float64"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add Coupon Handler
+      tags:
+      - Coupon
+  /coupon-get:
+    get:
+      consumes:
+      - application/json
+      description: This Handler will get active coupons by passing "couponName" query
+        parameters
+      parameters:
+      - description: coupon name
+        in: query
+        name: couponName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Coupon Handler
+      tags:
+      - Coupon
+  /edit-user:
+    post:
+      consumes:
+      - application/json
+      description: This Handler enables user to edit his/her details
+      parameters:
+      - description: name and gender of user
+        in: body
+        name: edit-profile
+        required: true
+        schema:
+          example: '{ "usercontact" : "string" , "gender" : "string" }'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Edit Profile Details
+      tags:
+      - User
+  /filter/brand:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Brand
+        in: query
+        name: brand
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Filter By Brand
+      tags:
+      - Search&Filter
+  /filter/category:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category
+        in: query
+        name: category
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Filter By Category
+      tags:
+      - Search&Filter
+  /filter/price:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Price
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Price
+        in: query
+        name: to
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Filter By Price
+      tags:
+      - Search&Filter
+  /get-cart-details:
+    get:
+      consumes:
+      - application/json
+      description: Get the Cart Summary
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Cart Details
+      tags:
+      - Cart
+  /get-user:
+    get:
+      consumes:
+      - application/json
+      description: This Handler provides all the user information with ID from token
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Profile Details
+      tags:
+      - User
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login User with phone number
+      parameters:
+      - description: phone number of the user
+        in: body
+        name: user-login
+        required: true
+        schema:
+          example: '{ "usercontact" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Login Handler
+      tags:
+      - User
+  /logout:
+    delete:
+      consumes:
+      - application/json
+      description: This Handler will Log out the user
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Logout
+      tags:
+      - User
+  /order-details:
+    get:
+      consumes:
+      - application/json
+      description: Get the full order details made till now
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Order Details
+      tags:
+      - Payment
+  /payment:
+    post:
+      consumes:
+      - application/json
+      description: Make payment for products from cart
+      parameters:
+      - description: Order Payment
+        in: body
+        name: payment
+        required: true
+        schema:
+          example: '{   "productId" : "string","cartId" : "string","cardNumber": "string","expMonth":
+            "string","expYear": "string","cvc": "string","couponName" : "string"'
+          type: string
+      - description: address type
+        in: query
+        name: addresstype
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Make Payment Handler
+      tags:
+      - Payment
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Registering User with initial details in DB
+      parameters:
+      - description: name and phone number of the user
+        in: body
+        name: user-register
+        required: true
+        schema:
+          example: '{  "username" : "string", "usercontact" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Register Handler
+      tags:
+      - User
+  /remove-from-cart:
+    delete:
+      consumes:
+      - application/json
+      description: Remove the product totally from cart
+      parameters:
+      - description: CartId and ProductId
+        in: body
+        name: remove-product
+        required: true
+        schema:
+          example: '{  "cartId" : "string", "productId" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Remove product from cart
+      tags:
+      - Cart
+  /remove-product:
+    delete:
+      consumes:
+      - application/json
+      description: Reduce the product count from product
+      parameters:
+      - description: CartId , ProductId and product count
+        in: body
+        name: remove-product
+        required: true
+        schema:
+          example: '{  "cartId" : "string", "productId" : "string", "productCount"
+            : "float64"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Reduce product Count
+      tags:
+      - Cart
+  /search-bar:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Search Bar
+        in: query
+        name: productQuery
+        required: true
+        type: string
+      - description: Search Bar
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Search Bar
+        in: query
+        name: to
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Search Bar
+      tags:
+      - Search&Filter
+  /search-bar/history:
+    get:
+      consumes:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Search Bar History
+      tags:
+      - Search&Filter
+  /user/address:
+    post:
+      consumes:
+      - application/json
+      description: This Handler will set user address
+      parameters:
+      - description: user address details
+        in: body
+        name: user-address-set
+        required: true
+        schema:
+          example: '{  "name" : "string","street" : "string","city" : "string","state"
+            : "string","postalCode" : "string","country" : "string","phone" : "string","email"
+            : "string","addressType" : "home/work/default" }'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Address
+      tags:
+      - User
+  /user/address-get:
+    get:
+      consumes:
+      - application/json
+      description: This Handler will get user addresses by passing "addresstype" param
+        as "WORK/DEFAULT/HOME"
+      parameters:
+      - description: address type details
+        in: query
+        name: addresstype
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Address Retrieve Handler
+      tags:
+      - User
+  /vendor-edit-details:
+    post:
+      consumes:
+      - application/json
+      description: This Handler enables Vendor to edit his/her details
+      parameters:
+      - description: company details
+        in: body
+        name: edit-profile
+        required: true
+        schema:
+          example: '{  "companyName": "Ambani seth","description" : "Abra ka dabra
+            jbewijbwr","logo" : "/home/chicmic/Downloads/test.jpg","bannerImage" :
+            "/home/chicmic/Downloads/test.jpg"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Vendor Edit Profile Details
+      tags:
+      - Vendor
+  /vendor-login:
+    post:
+      consumes:
+      - application/json
+      description: Login Vendor with initial details in DB
+      parameters:
+      - description: vendor details
+        in: body
+        name: vendor-register
+        required: true
+        schema:
+          example: '{  "gstNumber" : "29ABCDE1234F1Z5","companyContact" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Vendor Login Handler
+      tags:
+      - Vendor
+  /vendor-logout:
+    delete:
+      consumes:
+      - application/json
+      description: This Handler will Log out the user
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Vendor Logout
+      tags:
+      - Vendor
+  /vendor-product-add:
+    post:
+      consumes:
+      - application/json
+      description: This Handler adds multiple products from vendor side
+      parameters:
+      - description: product description
+        in: body
+        name: product-add
+        required: true
+        schema:
+          example: '{   "productName" : "Redmi Note 10 pro 4G","productDescription"
+            : "4G smart phone","productPrice" : 9999.9,"productBrand" : "Redmi","productCategory"
+            : "mobile","productImageUrl" : "http://dummyimage.com/169x100.png/cc0000/ffffff"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Product Add from vendor side
+      tags:
+      - Vendor
+  /vendor-product-delete:
+    post:
+      consumes:
+      - application/json
+      description: This Handler will delete product from the inventory
+      parameters:
+      - description: product id
+        in: body
+        name: inventory-delete
+        required: true
+        schema:
+          example: '{  "productId" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Product Delete from Inventory
+      tags:
+      - Vendor
+  /vendor-product-status:
+    post:
+      consumes:
+      - application/json
+      description: Vendor Can update order status according to dispatched/confirmed
+      parameters:
+      - description: Provide Order Id to cancel order
+        in: body
+        name: orderId
+        required: true
+        schema:
+          example: '{  "orderId" : "string" ,"orderStatus" : "string"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Vendor Order Status
+      tags:
+      - Vendor
+  /vendor-product-update:
+    post:
+      consumes:
+      - application/json
+      description: This Handler Update Product Inventory Details
+      parameters:
+      - description: product id and product inventory
+        in: body
+        name: product-inventory-update
+        required: true
+        schema:
+          example: '{  "productId" : "string","productInventory" : "float64"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Product Inventory Update
+      tags:
+      - Vendor
+  /vendor-register:
+    post:
+      consumes:
+      - application/json
+      description: Registering Vendor with initial details in DB
+      parameters:
+      - description: vendor details
+        in: body
+        name: vendor-register
+        required: true
+        schema:
+          example: '{  "gstNumber" : "29ABCDE1234F1Z5","companyName" : "Sports Tak","companyContact"
+            : "9877370350","street" : "saytan gali kholi number 420","city" : "mohali","state"
+            : "punjab","postalCode" : "152001","country" : "india"}'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Vendor Register Handler
+      tags:
+      - Vendor
+  /vendor-verify-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify the OTP against the provided phone number
+      parameters:
+      - description: phone number and otp of the user
+        in: body
+        name: verify-otp
+        required: true
+        schema:
+          example: '{ "contactNumber" : "string" , "otp" : "string" }'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Vendor Verify OTP Handler
+      tags:
+      - Vendor
+  /verify-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify the OTP against the provided phone number
+      parameters:
+      - description: phone number and otp of the user
+        in: body
+        name: verify-otp
+        required: true
+        schema:
+          example: '{ "usercontact" : "string" , "otp" : "string" }'
+          type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: User Verify OTP Handler
+      tags:
+      - User
 swagger: "2.0"

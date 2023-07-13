@@ -46,13 +46,13 @@ func ConfigureRoutes(server *Server) {
 
 	//user address handler
 	server.engine.POST("/user/address", handler.UserAddressHandler)
-	server.engine.GET("user/address-get", handler.UserAddressRetrieveHandler)
+	server.engine.GET("/user/address-get", handler.UserAddressRetrieveHandler)
 
 	//vendor login  & logout
 	server.engine.POST("/vendor-register", handler.VendorRegisterHandler)
 	server.engine.POST("/vendor-login", handler.VendorLoginHandler)
 	server.engine.POST("/vendor-verify-otp", handler.VenderVerifyOtpHandler)
-	server.engine.DELETE("/verify-logout", gateway.VendorAuthorization, handler.VendorLogoutHandler)
+	server.engine.DELETE("/vendor-logout", gateway.VendorAuthorization, handler.VendorLogoutHandler)
 	server.engine.POST("/vendor-edit-details", gateway.VendorAuthorization, handler.VendorEditDetailsHandler)
 
 	//vendor product management

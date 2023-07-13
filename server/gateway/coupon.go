@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//Coupon Session management middleware
 func CouponExpiration(ctx *gin.Context) {
 	var coupons []model.Coupons
 

@@ -119,7 +119,7 @@ func AddToCartService(ctx *gin.Context, addToCartRequest context.AddToCartReques
 	)
 }
 
-// Add product to cart
+// Add more products of same type to cart
 func AddProductService(ctx *gin.Context, addProductCountRequest context.AddToCartRequest) {
 	userId, err := IdFromToken(ctx)
 	if err != nil {

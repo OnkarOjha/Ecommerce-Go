@@ -21,14 +21,14 @@ func FilterByCategoryService(context *gin.Context) {
 		return
 	}
 
-	if !db.RecordExist("products", "product_category", category) {
+	if !db.RecordExist("products", "product_category", strings.ToUpper(category)) {
 		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Product Category does not exist")
 		return
 	}
 
 	var productByCategory []model.Products
 
-	query := "SELECT * FROM products where product_category='" + strings.ToLower(category) + "' ORDER BY product_price DESC LIMIT 30"
+	query := "SELECT * FROM products where product_category='" + strings.ToUpper(category) + "' ORDER BY product_price DESC LIMIT 30"
 	err := db.QueryExecutor(query, &productByCategory)
 	if err != nil {
 		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
@@ -95,14 +95,14 @@ func FilterByBrandService(context *gin.Context) {
 		return
 	}
 
-	if !db.RecordExist("products", "product_brand", brandName) {
+	if !db.RecordExist("products", "product_brand", strings.ToUpper(brandName)) {
 		response.ErrorResponse(context, utils.HTTP_BAD_REQUEST, "Product brand does not exist")
 		return
 	}
 
 	var productByBrand []model.Products
 
-	query := "SELECT * FROM products where product_category='" + strings.ToLower(brandName) + "' ORDER BY product_price DESC LIMIT 30"
+	query := "SELECT * FROM products where product_category='" + strings.ToUpper(brandName) + "' ORDER BY product_price DESC LIMIT 30"
 	err := db.QueryExecutor(query, &productByBrand)
 	if err != nil {
 		response.ErrorResponse(context, utils.HTTP_INTERNAL_SERVER_ERROR, "Error Finding in DB")
@@ -127,7 +127,7 @@ func SearchBarService(context *gin.Context) {
 
 	var productNameSearchExists bool
 
-	boolQuery := "SELECT EXISTS (select * from products where product_name LIKE LOWER('%\\" + productQuery + "%'))"
+	boolQuery := "SELECT EXISTS (select * from products where product_name LIKE UPPER('%\\" + productQuery + "%'))"
 
 	err := db.QueryExecutor(boolQuery, &productNameSearchExists)
 	if err != nil {
@@ -136,7 +136,7 @@ func SearchBarService(context *gin.Context) {
 	}
 
 	if productNameSearchExists {
-		productNameSearchQuery := "select * from products where product_name LIKE LOWER('%\\" + productQuery + "%')  ORDER BY product_price ASC LIMIT 10"
+		productNameSearchQuery := "select * from products where product_name LIKE UPPER('%\\" + productQuery + "%')  ORDER BY product_price ASC LIMIT 10"
 
 		err := db.QueryExecutor(productNameSearchQuery, &productNameSearch)
 		if err != nil {
@@ -314,7 +314,7 @@ func SearchHistoryUpdate(context *gin.Context, productNameSearch []model.Product
 // to show search bar history currently in the search history DB
 func SearchBarHistoryService(context *gin.Context) {
 	var searchBarHistoryLoader []model.SearchHistory
-	query := "SELECT DISTINCT search_frequency, search_time ,search_query FROM search_histories ORDER BY search_time ASC LIMIT 5;"
+	query := "SELECT DISTINCT search_frequency, search_time ,search_query FROM search_histories ORDER BY search_time DESC LIMIT 5;"
 
 	err := db.QueryExecutor(query, &searchBarHistoryLoader)
 	if err != nil {

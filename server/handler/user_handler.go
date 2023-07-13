@@ -11,6 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary  		User Register Handler
+// @Description  	Registering User with initial details in DB
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param   		user-register body string true "name and phone number of the user" SchemaExample({  "username" : "string", "usercontact" : "string"})
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/register [post]
 func UserRegisterHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
@@ -29,6 +40,17 @@ func UserRegisterHandler(ctx *gin.Context) {
 
 }
 
+// @Summary  		User Login Handler
+// @Description  	Login User with phone number
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param   		user-login body string true "phone number of the user" SchemaExample({ "usercontact" : "string"})
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/login [post]
 func UserLoginHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
@@ -49,6 +71,17 @@ func UserLoginHandler(ctx *gin.Context) {
 	user.UserLoginService(ctx, userLogin)
 }
 
+// @Summary  		User Verify OTP Handler
+// @Description  	Verify the OTP against the provided phone number
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param   		verify-otp body string true "phone number and otp of the user" SchemaExample({ "usercontact" : "string" , "otp" : "string" })
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/verify-otp [post]
 func UserVerifyOtpHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
@@ -70,6 +103,16 @@ func UserVerifyOtpHandler(ctx *gin.Context) {
 	user.UserVerifyService(ctx, verifyOtpRequest)
 }
 
+// @Summary  		User Profile Details
+// @Description  	This Handler provides all the user information with ID from token
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/get-user [get]
 func GetUserByIdHandler(ctx *gin.Context) {
 
 	utils.SetHeader(ctx)
@@ -78,6 +121,17 @@ func GetUserByIdHandler(ctx *gin.Context) {
 
 }
 
+// @Summary  		User Edit Profile Details
+// @Description  	This Handler enables user to edit his/her details
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param   		edit-profile body string true "name and gender of user" SchemaExample({ "usercontact" : "string" , "gender" : "string" })
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/edit-user [post]
 func EditUserProfile(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
@@ -99,6 +153,16 @@ func EditUserProfile(ctx *gin.Context) {
 
 }
 
+// @Summary  		User Logout
+// @Description  	This Handler will Log out the user
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/logout [delete]
 func UserLogoutHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
@@ -106,6 +170,17 @@ func UserLogoutHandler(ctx *gin.Context) {
 
 }
 
+// @Summary  		User Address
+// @Description  	This Handler will set user address
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param   		user-address-set body string true "user address details" SchemaExample({  "name" : "string","street" : "string","city" : "string","state" : "string","postalCode" : "string","country" : "string","phone" : "string","email" : "string","addressType" : "home/work/default" })
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/user/address [post]
 func UserAddressHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
@@ -127,6 +202,17 @@ func UserAddressHandler(ctx *gin.Context) {
 
 }
 
+// @Summary  		User Address Retrieve Handler
+// @Description  	This Handler will get user addresses by passing "addresstype" param as "WORK/DEFAULT/HOME"
+// @Tags 			User
+// @Accept 			json
+// @Procedure 		json
+// @Param			addresstype query string true "address type details" SchemaExample({"addresstype" : "WORK/DEFAULT/HOME"})
+// @Success			200	{string}	response.Response
+// @Failure			400	{string}	response.Response
+// @Failure			409	{string}	response.Response
+// @Failure			500	{string}	response.Response
+// @Router			/user/address-get [get]
 func UserAddressRetrieveHandler(ctx *gin.Context) {
 	utils.SetHeader(ctx)
 
